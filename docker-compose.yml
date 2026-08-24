@@ -1,0 +1,41 @@
+services:
+  behbar-api:
+    image: ghcr.io/siamakgarawan/behbar-api:latest
+    restart: unless-stopped
+    environment:
+      SITE_ORIGIN: https://${SITE_DOMAIN}
+      ADMIN_ORIGIN: https://${ADMIN_DOMAIN}
+      DATA_DIR: /data
+    volumes:
+      - behbar-data:/data
+
+  behbar-site:
+    image: ghcr.io/siamakgarawan/behbar-site:latest
+    restart: unless-stopped
+
+  behbar-admin:
+    image: ghcr.io/siamakgarawan/behbar-admin:latest
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - behbar-api
+      - behbar-site
+      - behbar-admin
+
+volumes:
+  behbar-data:
+  caddy-data:
+  caddy-config:
