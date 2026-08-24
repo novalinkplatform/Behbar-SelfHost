@@ -36,15 +36,38 @@ if [ -z "$SITE_DOMAIN" ] || [ -z "$ADMIN_DOMAIN" ]; then
   exit 1
 fi
 
+# --- بررسی اینکه هر دو دامنه واقعاً به این سرور اشاره می‌کنند ---
+# با DNS-over-HTTPS گوگل چک می‌شود (مستقل از اینکه DNS خود دامنه کجا مدیریت می‌شود — کلادفلر، سایر شرکت‌ها، هرجا).
+resolve_domain() {
+  curl -fsSL "https://dns.google/resolve?name=$1&type=A" 2>/dev/null \
+    | grep -oE '"data": ?"[0-9.]+"' | grep -oE '[0-9.]+' | head -1
+}
+
 SERVER_IP=$(curl -fsSL https://api.ipify.org || echo "")
 if [ -n "$SERVER_IP" ]; then
   echo ""
-  echo "قبل از ادامه مطمئن شوید هر دو دامنه در DNS به آی‌پی این سرور اشاره می‌کنند:"
-  echo "  آی‌پی سرور: $SERVER_IP"
-  echo "  $SITE_DOMAIN  ->  رکورد A باید به همین آی‌پی باشد"
-  echo "  $ADMIN_DOMAIN ->  رکورد A باید به همین آی‌پی باشد"
+  echo "در حال بررسی DNS دامنه‌ها..."
+  SITE_IP=$(resolve_domain "$SITE_DOMAIN" || echo "")
+  ADMIN_IP=$(resolve_domain "$ADMIN_DOMAIN" || echo "")
+
+  check_domain() {
+    local domain="$1" resolved="$2"
+    if [ "$resolved" = "$SERVER_IP" ]; then
+      echo "  ✓ $domain  ->  $resolved (درست)"
+    elif [ -n "$resolved" ]; then
+      echo "  ✗ $domain  ->  $resolved (باید $SERVER_IP باشد — رکورد A را در پنل دامنه اصلاح کنید)"
+    else
+      echo "  ✗ $domain  ->  هنوز قابل ریزالو نیست (رکورد A ثبت نشده یا DNS هنوز منتشر نشده)"
+    fi
+  }
+  check_domain "$SITE_DOMAIN" "$SITE_IP"
+  check_domain "$ADMIN_DOMAIN" "$ADMIN_IP"
+
   echo ""
-  read -rp "برای ادامه Enter را بزنید (یا Ctrl+C برای لغو)..." _ < /dev/tty
+  echo "نکته: اگر DNS دامنه روی Cloudflare است، پراکسی نارنجی‌رنگ (Proxy status) هر دو رکورد را"
+  echo "خاموش کنید (DNS only / ابر خاکستری) — در غیر این صورت صدور گواهی HTTPS با خطا مواجه می‌شود."
+  echo ""
+  read -rp "برای ادامه Enter را بزنید (یا Ctrl+C برای لغو و اصلاح DNS)..." _ < /dev/tty
 fi
 
 # --- دانلود فایل‌های نصب ---
