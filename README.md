@@ -26,16 +26,29 @@ curl -fsSL https://raw.githubusercontent.com/siamakgarawan/Behbar-SelfHost/main/
 
 ایمیج‌ها به‌صورت خودکار از سه ریپوی اصلی (`Behbar-API`، `Behbar`، `Behbar-Admin`) توسط GitHub Actions ساخته و به GHCR پوش می‌شوند — نیازی به دسترسی خریدار به سورس نیست.
 
-## دستورات مفید بعد از نصب
+## مدیریت سرور با `beh-manager`
+
+حین نصب، دستور `beh-manager` روی سرور نصب می‌شود. با اجرای:
+
+```
+sudo beh-manager
+```
+
+یک منوی ساده باز می‌شود که از آن می‌توانید:
+
+- وضعیت سرویس‌ها را ببینید
+- بهبار را به‌روزرسانی کنید (دانلود آخرین ایمیج‌ها و راه‌اندازی مجدد)
+- رمز عبور حساب ادمین را تغییر دهید
+- آدرس دامنه‌ی سایت مشتری/پنل مدیریت را تغییر دهید
+
+## دستورات مفید دیگر
 
 همه از داخل `/opt/behbar` اجرا می‌شوند:
 
 ```
 docker compose ps                 # وضعیت سرویس‌ها
 docker compose logs -f behbar-api # لاگ بک‌اند
-docker compose pull && docker compose up -d   # آپدیت به آخرین نسخه‌ی ایمیج‌ها
 docker compose exec behbar-api cat /data/admin-credentials.txt   # دیدن دوباره‌ی اطلاعات ورود ادمین
-docker compose exec behbar-api node dist-node/selfhost/reset-admin-password.js "RaMZeJadid123"   # تغییر رمز حساب admin (حداقل ۶ کاراکتر)
 ```
 
 ## فعال‌سازی لایسنس

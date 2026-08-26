@@ -90,6 +90,10 @@ cd "$INSTALL_DIR"
 curl -fsSL -o docker-compose.yml "$REPO_RAW_BASE/docker-compose.yml"
 curl -fsSL -o Caddyfile "$REPO_RAW_BASE/Caddyfile"
 
+# --- install the "beh-manager" maintenance command ---
+curl -fsSL -o /usr/local/bin/beh-manager "$REPO_RAW_BASE/beh-manager.sh"
+chmod +x /usr/local/bin/beh-manager
+
 cat > .env <<EOF
 SITE_DOMAIN=$SITE_DOMAIN
 ADMIN_DOMAIN=$ADMIN_DOMAIN
@@ -126,12 +130,11 @@ echo ""
 echo " Note: HTTPS certificate issuance can take a few minutes (until DNS has propagated)."
 echo "================================================================"
 echo ""
+echo " For updates, changing the admin password, or changing domains later, run: sudo beh-manager"
+echo ""
 if [ -n "$CREDS" ]; then
   echo " Admin panel login (save this now — it will not be shown again):"
   echo "$CREDS" | sed 's/^/   /'
-  echo ""
-  echo " You can change this password later from the admin panel, or on the server with:"
-  echo "   docker compose -f $INSTALL_DIR/docker-compose.yml exec behbar-api node dist-node/selfhost/reset-admin-password.js <new-password>"
 else
   echo " Admin account creation is taking longer than expected — check later with:"
   echo "   docker compose -f $INSTALL_DIR/docker-compose.yml exec behbar-api cat /data/admin-credentials.txt"
