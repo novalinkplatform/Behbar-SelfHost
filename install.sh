@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# روی برخی سرورهای تازه‌نصب، locale پیش‌فرض UTF-8 نیست (مثلاً C/POSIX) و همین باعث می‌شود
+# متن فارسی در ترمینال به‌هم‌ریخته چاپ شود؛ اینجا صریحاً یک locale استاندارد UTF-8 را اجبار می‌کنیم
+# (C.UTF-8 روی تقریباً همه‌ی توزیع‌های لینوکس مدرن، از جمله نصب حداقلی، از قبل موجود است).
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
 REPO_RAW_BASE="https://raw.githubusercontent.com/siamakgarawan/Behbar-SelfHost/main"
 INSTALL_DIR="/opt/behbar"
 
@@ -70,16 +76,20 @@ if [ -n "$SERVER_IP" ]; then
   SITE_IP=$(resolve_domain "$SITE_DOMAIN" || echo "")
   ADMIN_IP=$(resolve_domain "$ADMIN_DOMAIN" || echo "")
 
+  # نکته: خط فنی (دامنه/آی‌پی) همیشه جدا از جمله‌ی فارسی چاپ می‌شود — ترکیب فلش/علامت با متن
+  # راست‌به‌چپ در یک خط باعث به‌هم‌ریختن ترتیب نمایش در بسیاری از ترمینال‌ها می‌شود.
   check_domain() {
     local domain="$1" resolved="$2"
     if [ "$resolved" = "$SERVER_IP" ]; then
-      msg "  OK  $domain  ->  $resolved" "  ✓ $domain  <-  $resolved (درست)"
+      msg "  [OK]   $domain -> $resolved" "  [درست]   $domain -> $resolved"
     elif [ -n "$resolved" ]; then
-      msg "  FAIL  $domain  ->  $resolved (should be $SERVER_IP — fix the A record at your domain provider)" \
-          "  ✗ $domain  <-  $resolved (باید $SERVER_IP باشد — رکورد A را در پنل دامنه اصلاح کنید)"
+      msg "  [FAIL] $domain -> $resolved" "  [نادرست]   $domain -> $resolved"
+      msg "         should be $SERVER_IP — fix the A record at your domain provider." \
+          "         باید به $SERVER_IP اشاره کند؛ رکورد A را در پنل دامنه اصلاح کنید."
     else
-      msg "  FAIL  $domain  -> not resolving yet (no A record, or DNS hasn't propagated)" \
-          "  ✗ $domain  <-  هنوز قابل ریزالو نیست (رکورد A ثبت نشده یا DNS هنوز منتشر نشده)"
+      msg "  [FAIL] $domain -> not resolving yet" "  [نادرست]   $domain -> هنوز قابل ریزالو نیست"
+      msg "         no A record, or DNS hasn't propagated yet." \
+          "         رکورد A ثبت نشده یا DNS هنوز منتشر نشده است."
     fi
   }
   check_domain "$SITE_DOMAIN" "$SITE_IP"
@@ -106,7 +116,14 @@ EOF
 # --- بالا آوردن سرویس‌ها ---
 echo ""
 msg "Downloading images and starting services..." "در حال دانلود ایمیج‌ها و راه‌اندازی..."
-docker compose pull
+if ! docker compose pull; then
+  echo ""
+  msg "Failed to download the images (see the error above)." \
+      "دانلود ایمیج‌ها ناموفق بود (خطای بالا را ببینید)."
+  msg "This is usually a temporary problem on the seller's side — please contact the seller and try again later." \
+      "معمولاً این یک مشکل موقت از سمت فروشنده است — لطفاً با فروشنده تماس بگیرید و بعداً دوباره امتحان کنید."
+  exit 1
+fi
 docker compose up -d
 
 # --- منتظر ماندن برای ساخته‌شدن حساب ادمین ---
