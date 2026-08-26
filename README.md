@@ -35,6 +35,7 @@ docker compose ps                 # وضعیت سرویس‌ها
 docker compose logs -f behbar-api # لاگ بک‌اند
 docker compose pull && docker compose up -d   # آپدیت به آخرین نسخه‌ی ایمیج‌ها
 docker compose exec behbar-api cat /data/admin-credentials.txt   # دیدن دوباره‌ی اطلاعات ورود ادمین
+docker compose exec behbar-api node dist-node/selfhost/reset-admin-password.js "RaMZeJadid123"   # تغییر رمز حساب admin (حداقل ۶ کاراکتر)
 ```
 
 ## فعال‌سازی لایسنس
