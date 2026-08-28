@@ -12,6 +12,8 @@ services:
   behbar-site:
     image: ghcr.io/siamakgarawan/behbar-site:latest
     restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
 
   behbar-admin:
     image: ghcr.io/siamakgarawan/behbar-admin:latest
