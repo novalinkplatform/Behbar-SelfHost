@@ -2,6 +2,10 @@
 	handle /api/* {
 		reverse_proxy behbar-api:8787
 	}
+	# sitemap.xml باید روی دامنه‌ی خود سایت (نه /api) در دسترس باشد — behbar-api همین مسیر را هم جواب می‌دهد.
+	handle /sitemap.xml {
+		reverse_proxy behbar-api:8787
+	}
 	# handle_path پیشوند /management را قبل از فوروارد حذف می‌کند — behbar-admin دقیقاً همان‌طور که
 	# روی مسیر خودش سرو می‌کند، بدون آگاهی از این پیشوند، درخواست را جواب می‌دهد.
 	handle_path /management/* {
