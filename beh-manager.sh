@@ -24,7 +24,6 @@ resolve_domain() {
 
 load_env() {
   SITE_DOMAIN=""
-  ADMIN_DOMAIN=""
   if [ -f "$INSTALL_DIR/.env" ]; then
     # shellcheck disable=SC1090
     source "$INSTALL_DIR/.env"
@@ -37,7 +36,7 @@ show_status() {
   $COMPOSE ps
   echo ""
   echo "Customer site : https://${SITE_DOMAIN:-not set}"
-  echo "Admin panel   : https://${ADMIN_DOMAIN:-not set}"
+  echo "Admin panel   : https://${SITE_DOMAIN:-not set}/management"
 }
 
 do_update() {
@@ -69,21 +68,17 @@ do_change_password() {
   $COMPOSE exec -T behbar-api node dist-node/selfhost/reset-admin-password.js "$NEW_PASS"
 }
 
-do_change_domains() {
+do_change_domain() {
   load_env
   echo ""
-  echo "Current customer site domain : ${SITE_DOMAIN:-not set}"
-  echo "Current admin panel domain   : ${ADMIN_DOMAIN:-not set}"
+  echo "Current domain : ${SITE_DOMAIN:-not set}"
   echo ""
-  read -rp "New customer site domain (leave empty to keep current): " NEW_SITE < /dev/tty
-  read -rp "New admin panel domain (leave empty to keep current): " NEW_ADMIN < /dev/tty
+  read -rp "New domain (leave empty to keep current): " NEW_SITE < /dev/tty
   NEW_SITE=${NEW_SITE:-$SITE_DOMAIN}
-  NEW_ADMIN=${NEW_ADMIN:-$ADMIN_DOMAIN}
   NEW_SITE=$(echo "$NEW_SITE" | sed -E 's#https?://##; s#/$##')
-  NEW_ADMIN=$(echo "$NEW_ADMIN" | sed -E 's#https?://##; s#/$##')
 
-  if [ -z "$NEW_SITE" ] || [ -z "$NEW_ADMIN" ]; then
-    echo "Both domains are required — nothing changed."
+  if [ -z "$NEW_SITE" ]; then
+    echo "A domain is required — nothing changed."
     return
   fi
 
@@ -91,28 +86,25 @@ do_change_domains() {
   if [ -n "$SERVER_IP" ]; then
     echo ""
     echo "Checking DNS..."
-    for d in "$NEW_SITE" "$NEW_ADMIN"; do
-      RESOLVED=$(resolve_domain "$d" || echo "")
-      if [ "$RESOLVED" = "$SERVER_IP" ]; then
-        echo "  [OK]   $d -> $RESOLVED"
-      else
-        echo "  [WARN] $d -> ${RESOLVED:-not resolving yet} (should be $SERVER_IP)"
-      fi
-    done
+    RESOLVED=$(resolve_domain "$NEW_SITE" || echo "")
+    if [ "$RESOLVED" = "$SERVER_IP" ]; then
+      echo "  [OK]   $NEW_SITE -> $RESOLVED"
+    else
+      echo "  [WARN] $NEW_SITE -> ${RESOLVED:-not resolving yet} (should be $SERVER_IP)"
+    fi
   fi
 
   cat > "$INSTALL_DIR/.env" <<EOF
 SITE_DOMAIN=$NEW_SITE
-ADMIN_DOMAIN=$NEW_ADMIN
 EOF
 
   echo ""
-  echo "Applying new domains..."
+  echo "Applying new domain..."
   $COMPOSE up -d
   echo ""
-  echo "Done. HTTPS certificates for the new domains are issued automatically once DNS points here — that can take a few minutes."
+  echo "Done. The HTTPS certificate for the new domain is issued automatically once DNS points here — that can take a few minutes."
   echo "  Customer site : https://$NEW_SITE"
-  echo "  Admin panel   : https://$NEW_ADMIN"
+  echo "  Admin panel   : https://$NEW_SITE/management"
 }
 
 while true; do
@@ -123,14 +115,14 @@ while true; do
   echo " 1) Show status"
   echo " 2) Update Behbar (pull latest images and restart)"
   echo " 3) Change admin password"
-  echo " 4) Change domain addresses"
+  echo " 4) Change domain"
   echo " 5) Exit"
   read -rp "> " CHOICE < /dev/tty
   case "$CHOICE" in
     1) show_status ;;
     2) do_update ;;
     3) do_change_password ;;
-    4) do_change_domains ;;
+    4) do_change_domain ;;
     5) exit 0 ;;
     *) echo "Invalid choice." ;;
   esac

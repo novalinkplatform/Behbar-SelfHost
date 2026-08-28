@@ -4,7 +4,6 @@ services:
     restart: unless-stopped
     environment:
       SITE_ORIGIN: https://${SITE_DOMAIN}
-      ADMIN_ORIGIN: https://${ADMIN_DOMAIN}
       DATA_DIR: /data
     volumes:
       - behbar-data:/data
@@ -28,7 +27,6 @@ services:
       - "443:443/udp"
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN}
-      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

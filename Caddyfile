@@ -2,16 +2,12 @@
 	handle /api/* {
 		reverse_proxy behbar-api:8787
 	}
+	# handle_path پیشوند /management را قبل از فوروارد حذف می‌کند — behbar-admin دقیقاً همان‌طور که
+	# روی مسیر خودش سرو می‌کند، بدون آگاهی از این پیشوند، درخواست را جواب می‌دهد.
+	handle_path /management/* {
+		reverse_proxy behbar-admin:80
+	}
 	handle {
 		reverse_proxy behbar-site:80
-	}
-}
-
-{$ADMIN_DOMAIN} {
-	handle /api/* {
-		reverse_proxy behbar-api:8787
-	}
-	handle {
-		reverse_proxy behbar-admin:80
 	}
 }

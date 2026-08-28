@@ -38,21 +38,20 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-# --- get the two domains from the user ---
+# --- get the domain from the user ---
 # this script normally runs via curl | bash, so input must be read directly from the terminal (/dev/tty)
+# the admin panel lives at /management on this same domain — no separate domain needed for it.
 echo ""
-read -rp "Customer site domain (e.g.: behbar.example.com): " SITE_DOMAIN < /dev/tty
-read -rp "Admin panel domain (e.g.: admin.example.com): " ADMIN_DOMAIN < /dev/tty
+read -rp "Site domain (e.g.: behbar.example.com): " SITE_DOMAIN < /dev/tty
 
 SITE_DOMAIN=$(echo "$SITE_DOMAIN" | sed -E 's#https?://##; s#/$##')
-ADMIN_DOMAIN=$(echo "$ADMIN_DOMAIN" | sed -E 's#https?://##; s#/$##')
 
-if [ -z "$SITE_DOMAIN" ] || [ -z "$ADMIN_DOMAIN" ]; then
-  echo "Both domains are required."
+if [ -z "$SITE_DOMAIN" ]; then
+  echo "A domain is required."
   exit 1
 fi
 
-# --- check that both domains actually point at this server ---
+# --- check that the domain actually points at this server ---
 # uses Google's DNS-over-HTTPS (independent of who manages the domain's DNS — Cloudflare, others, anywhere)
 resolve_domain() {
   curl -fsSL "https://dns.google/resolve?name=$1&type=A" 2>/dev/null \
@@ -62,9 +61,8 @@ resolve_domain() {
 SERVER_IP=$(curl -fsSL https://api.ipify.org || echo "")
 if [ -n "$SERVER_IP" ]; then
   echo ""
-  echo "Checking DNS for both domains..."
+  echo "Checking DNS..."
   SITE_IP=$(resolve_domain "$SITE_DOMAIN" || echo "")
-  ADMIN_IP=$(resolve_domain "$ADMIN_DOMAIN" || echo "")
 
   check_domain() {
     local domain="$1" resolved="$2"
@@ -77,11 +75,10 @@ if [ -n "$SERVER_IP" ]; then
     fi
   }
   check_domain "$SITE_DOMAIN" "$SITE_IP"
-  check_domain "$ADMIN_DOMAIN" "$ADMIN_IP"
 
   echo ""
-  echo "Note: if these domains use Cloudflare DNS, turn off the orange-cloud proxy (set to DNS only / grey cloud) on both records — otherwise HTTPS certificate issuance will fail."
-  echo "Continuing automatically — if a domain isn't pointed at this server yet, fix its A record and HTTPS will be issued as soon as DNS propagates, no need to re-run this script."
+  echo "Note: if this domain uses Cloudflare DNS, turn off the orange-cloud proxy (set to DNS only / grey cloud) on its record — otherwise HTTPS certificate issuance will fail."
+  echo "Continuing automatically — if the domain isn't pointed at this server yet, fix its A record and HTTPS will be issued as soon as DNS propagates, no need to re-run this script."
 fi
 
 # --- download the install files ---
@@ -96,7 +93,6 @@ chmod +x /usr/local/bin/beh-manager
 
 cat > .env <<EOF
 SITE_DOMAIN=$SITE_DOMAIN
-ADMIN_DOMAIN=$ADMIN_DOMAIN
 EOF
 
 # --- bring the services up ---
@@ -125,12 +121,12 @@ echo "================================================================"
 echo " Behbar installation complete"
 echo ""
 echo "   Customer site : https://$SITE_DOMAIN"
-echo "   Admin panel   : https://$ADMIN_DOMAIN"
+echo "   Admin panel   : https://$SITE_DOMAIN/management"
 echo ""
 echo " Note: HTTPS certificate issuance can take a few minutes (until DNS has propagated)."
 echo "================================================================"
 echo ""
-echo " For updates, changing the admin password, or changing domains later, run: sudo beh-manager"
+echo " For updates, changing the admin password, or changing the domain later, run: sudo beh-manager"
 echo ""
 if [ -n "$CREDS" ]; then
   echo " Admin panel login (save this now — it will not be shown again):"
