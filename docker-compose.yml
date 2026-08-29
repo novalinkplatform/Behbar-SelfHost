@@ -11,7 +11,7 @@ services:
       # (docker run) بزند که pull/up -d را روی همین پروژه‌ی compose اجرا کند. این یعنی هر کسی که به
       # پنل مدیریت این کانتینر دسترسی پیدا کند عملاً به کل سرور دسترسی دارد — رمز مدیر را قوی نگه دارید.
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/behbar:/opt/behbar
+      - /opt/behbar:/opt/behbar:ro
 
   behbar-site:
     image: ghcr.io/siamakgarawan/behbar-site:latest
