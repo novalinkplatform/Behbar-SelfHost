@@ -10,14 +10,14 @@
 ## نصب
 
 ```
-curl -fsSL https://raw.githubusercontent.com/siamakgarawan/Behbar-SelfHost/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/install.sh | sudo bash
 ```
 
 اسکریپت فقط یک سؤال می‌پرسد (آدرس دامنه)، بقیه‌ی مراحل — نصب Docker، دانلود و اجرای سرویس‌ها، صدور خودکار گواهی HTTPS، ساخت حساب مدیر — خودکار انجام می‌شود. در پایان، آدرس سایت و پنل مدیریت و اطلاعات ورود (نام کاربری/رمز عبور تولیدشده) چاپ می‌شود.
 
 ## معماری
 
-سه سرویس Docker (هرکدام یک ایمیج آماده از `ghcr.io/siamakgarawan/...`) + یک Caddy در جلو برای مسیریابی و HTTPS خودکار:
+سه سرویس Docker (هرکدام یک ایمیج آماده از `ghcr.io/novalinkplatform/...`) + یک Caddy در جلو برای مسیریابی و HTTPS خودکار:
 
 - `behbar-api` — بک‌اند (Node.js + SQLite، دیتای آن در یک Docker volume ماندگار است)
 - `behbar-site` — سایت مشتری (فایل استاتیک، سرو شده با nginx)

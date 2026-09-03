@@ -6,7 +6,7 @@ export LANG=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 
-REPO_RAW_BASE="https://raw.githubusercontent.com/siamakgarawan/Behbar-SelfHost/main"
+REPO_RAW_BASE="https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main"
 INSTALL_DIR="/opt/behbar"
 
 echo "=== Installing Behbar ==="
