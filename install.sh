@@ -6,53 +6,58 @@ export LANG=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 
-REPO_RAW_BASE="https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="/opt/behbar"
 
-echo "=== Installing Behbar ==="
+echo "================================================================"
+echo "          نصب و راه‌اندازی اسکریپت اختصاصی بهبار (Behbar)        "
+echo "================================================================"
 echo ""
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root (e.g.: sudo bash install.sh)"
+  echo "خطا: این اسکریپت باید با دسترسی روت اجرا شود (مثال: sudo bash install.sh)"
   exit 1
 fi
 
-# --- update the OS package index and installed packages first ---
-# DEBIAN_FRONTEND/NEEDRESTART_MODE above, plus the dpkg options here, keep this from blocking on
-# interactive prompts (config-file conflicts, "restart these services?" dialogs) since this script
-# usually runs non-interactively via curl | sudo bash.
+# --- بررسی وجود فایل‌های موردنیاز در کنار نصاب ---
+for req_file in "docker-compose.yml" "Caddyfile" "beh-manager.sh"; do
+  if [ ! -f "$SCRIPT_DIR/$req_file" ]; then
+    echo "خطا: فایل $req_file در کنار اسکریپت نصب یافت نشد."
+    echo "لطفاً مطمئن شوید که تمام فایل‌های بسته را در همین مسیر استخراج نموده‌اید."
+    exit 1
+  fi
+done
+
+# --- بروزرسانی بسته‌های سیستم‌عامل ---
 if command -v apt-get >/dev/null 2>&1; then
-  echo "Updating system packages..."
+  echo "در حال بررسی و بروزرسانی مخازن سیستم‌عامل..."
   apt-get update -y
   apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 fi
 
-# --- install Docker if missing ---
+# --- نصب داکر در صورت عدم وجود ---
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Installing Docker..."
+  echo "در حال نصب خودکار Docker..."
   curl -fsSL https://get.docker.com | sh
 fi
 
 if ! docker compose version >/dev/null 2>&1; then
-  echo "Docker Compose plugin not found. Please install a newer version of Docker."
+  echo "خطا: افزونه Docker Compose پیدا نشد. لطفاً نسخه جدید داکر را نصب نمایید."
   exit 1
 fi
 
-# --- get the domain from the user ---
-# this script normally runs via curl | bash, so input must be read directly from the terminal (/dev/tty)
-# the admin panel lives at /management on this same domain — no separate domain needed for it.
+# --- دریافت دامنه از خریدار ---
 echo ""
-read -rp "Site domain (e.g.: behbar.example.com): " SITE_DOMAIN < /dev/tty
+read -rp "دامنه یا زیردامنه سایت (مثال: behbar.example.com): " SITE_DOMAIN < /dev/tty
 
 SITE_DOMAIN=$(echo "$SITE_DOMAIN" | sed -E 's#https?://##; s#/$##')
 
 if [ -z "$SITE_DOMAIN" ]; then
-  echo "A domain is required."
+  echo "خطا: وارد کردن نام دامنه الزامی است."
   exit 1
 fi
 
-# --- check that the domain actually points at this server ---
-# uses Google's DNS-over-HTTPS (independent of who manages the domain's DNS — Cloudflare, others, anywhere)
+# --- بررسی اتصال DNS دامنه به این سرور ---
 resolve_domain() {
   curl -fsSL "https://dns.google/resolve?name=$1&type=A" 2>/dev/null \
     | grep -oE '"data": ?"[0-9.]+"' | grep -oE '[0-9.]+' | head -1
@@ -61,53 +66,50 @@ resolve_domain() {
 SERVER_IP=$(curl -fsSL https://api.ipify.org || echo "")
 if [ -n "$SERVER_IP" ]; then
   echo ""
-  echo "Checking DNS..."
+  echo "در حال بررسی رکورد DNS دامنه..."
   SITE_IP=$(resolve_domain "$SITE_DOMAIN" || echo "")
 
-  check_domain() {
-    local domain="$1" resolved="$2"
-    if [ "$resolved" = "$SERVER_IP" ]; then
-      echo "  [OK]   $domain -> $resolved"
-    elif [ -n "$resolved" ]; then
-      echo "  [FAIL] $domain -> $resolved (should be $SERVER_IP — fix the A record at your domain provider)"
-    else
-      echo "  [FAIL] $domain -> not resolving yet (no A record, or DNS hasn't propagated)"
-    fi
-  }
-  check_domain "$SITE_DOMAIN" "$SITE_IP"
+  if [ "$SITE_IP" = "$SERVER_IP" ]; then
+    echo "  [تایید] رکورد A دامنه $SITE_DOMAIN با موفقیت به آی‌پی این سرور ($SERVER_IP) متصل است."
+  elif [ -n "$SITE_IP" ]; then
+    echo "  [هشدار] دامنه $SITE_DOMAIN به آی‌پی $SITE_IP اشاره می‌کند در حالی که آی‌پی این سرور $SERVER_IP است."
+    echo "  لطفاً رکورد A را در پنل دامنه یا کلادفلر خود ویرایش کنید."
+  else
+    echo "  [توجه] هنوز رکورد A برای این دامنه یافت نشد یا در حال انتشار در اینترنت است."
+  fi
 
   echo ""
-  echo "Note: if this domain uses Cloudflare DNS, turn off the orange-cloud proxy (set to DNS only / grey cloud) on its record — otherwise HTTPS certificate issuance will fail."
-  echo "Continuing automatically — if the domain isn't pointed at this server yet, fix its A record and HTTPS will be issued as soon as DNS propagates, no need to re-run this script."
+  echo "نکته مهم: اگر از کلادفلر استفاده می‌کنید، ابر پروکسی دامنه را خاموش (خاکستری / DNS only) قرار دهید تا گواهی SSL بدون مشکل صادر شود."
+  echo "نصب ادامه می‌یابد..."
 fi
 
-# --- download the install files ---
+# --- کپی فایل‌های پیکربندی و کانتینرها ---
 mkdir -p "$INSTALL_DIR"
-cd "$INSTALL_DIR"
-curl -fsSL -o docker-compose.yml "$REPO_RAW_BASE/docker-compose.yml"
-curl -fsSL -o Caddyfile "$REPO_RAW_BASE/Caddyfile"
+cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml"
+cp "$SCRIPT_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile"
 
-# --- install the "beh-manager" maintenance command ---
-curl -fsSL -o /usr/local/bin/beh-manager "$REPO_RAW_BASE/beh-manager.sh"
+# --- نصب ابزار مدیریت beh-manager ---
+cp "$SCRIPT_DIR/beh-manager.sh" /usr/local/bin/beh-manager
 chmod +x /usr/local/bin/beh-manager
 
-cat > .env <<EOF
+cat > "$INSTALL_DIR/.env" <<EOF
 SITE_DOMAIN=$SITE_DOMAIN
 EOF
 
-# --- bring the services up ---
+cd "$INSTALL_DIR"
+
+# --- راه‌اندازی سرویس‌ها ---
 echo ""
-echo "Downloading images and starting services..."
+echo "در حال دانلود ایمیج‌های بهبار و اجرای سرویس‌ها..."
 if ! docker compose pull; then
   echo ""
-  echo "Failed to download the images (see the error above)."
-  echo "This is usually a temporary problem on the seller's side — please contact the seller and try again later."
+  echo "خطا در دریافت ایمیج‌ها. لطفاً اتصال اینترنت سرور را بررسی نموده و مجدداً تلاش فرمایید."
   exit 1
 fi
 docker compose up -d
 
-# --- wait for the initial admin account to be created ---
-echo "Creating the initial admin account..."
+# --- انتظار برای ساخت حساب مدیر پیش‌فرض ---
+echo "در حال پیکربندی اولیه و ساخت حساب مدیریت..."
 CREDS=""
 for _ in $(seq 1 60); do
   if CREDS=$(docker compose exec -T behbar-api cat /data/admin-credentials.txt 2>/dev/null); then
@@ -118,20 +120,21 @@ done
 
 echo ""
 echo "================================================================"
-echo " Behbar installation complete"
+echo "              نصب اسکریپت بهبار با موفقیت انجام شد              "
 echo ""
-echo "   Customer site : https://$SITE_DOMAIN"
-echo "   Admin panel   : https://$SITE_DOMAIN/management"
+echo "   آدرس سایت مشتریان: https://$SITE_DOMAIN"
+echo "   آدرس پنل مدیریت   : https://$SITE_DOMAIN/management"
 echo ""
-echo " Note: HTTPS certificate issuance can take a few minutes (until DNS has propagated)."
+echo " توجه: صدور گواهی امنیتی HTTPS ممکن است چند دقیقه زمان ببرد."
 echo "================================================================"
 echo ""
-echo " For updates, changing the admin password, or changing the domain later, run: sudo beh-manager"
+echo " برای مدیریت، تغییر دامنه، تغییر رمز مدیر یا بروزرسانی، دستور زیر را اجرا کنید:"
+echo " sudo beh-manager"
 echo ""
 if [ -n "$CREDS" ]; then
-  echo " Admin panel login (save this now — it will not be shown again):"
+  echo " اطلاعات ورود به پنل مدیریت (این اطلاعات را یادداشت نمایید):"
   echo "$CREDS" | sed 's/^/   /'
 else
-  echo " Admin account creation is taking longer than expected — check later with:"
+  echo " جهت مشاهده اطلاعات ورود، بعد از چند لحظه دستور زیر را اجرا کنید:"
   echo "   docker compose -f $INSTALL_DIR/docker-compose.yml exec behbar-api cat /data/admin-credentials.txt"
 fi

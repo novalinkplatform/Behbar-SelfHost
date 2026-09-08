@@ -9,22 +9,25 @@
 
 ## نصب
 
-```
-curl -fsSL https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/install.sh | sudo bash
+۱. فایل‌های بسته را روی سرور در یک پوشه (مثلاً `/opt/behbar`) استخراج کنید.
+۲. دستور زیر را با دسترسی روت اجرا نمایید:
+
+```bash
+sudo bash install.sh
 ```
 
 اسکریپت فقط یک سؤال می‌پرسد (آدرس دامنه)، بقیه‌ی مراحل — نصب Docker، دانلود و اجرای سرویس‌ها، صدور خودکار گواهی HTTPS، ساخت حساب مدیر — خودکار انجام می‌شود. در پایان، آدرس سایت و پنل مدیریت و اطلاعات ورود (نام کاربری/رمز عبور تولیدشده) چاپ می‌شود.
 
 ## معماری
 
-سه سرویس Docker (هرکدام یک ایمیج آماده از `ghcr.io/novalinkplatform/...`) + یک Caddy در جلو برای مسیریابی و HTTPS خودکار:
+سه سرویس Docker (کانتینرهای مستقل بهینه‌شده) + یک Caddy در جلو برای مسیریابی و HTTPS خودکار:
 
 - `behbar-api` — بک‌اند (Node.js + SQLite، دیتای آن در یک Docker volume ماندگار است)
 - `behbar-site` — سایت مشتری (فایل استاتیک، سرو شده با nginx)
 - `behbar-admin` — پنل مدیریت (فایل استاتیک، سرو شده با nginx؛ روی مسیر `/management`)
 - `caddy` — دریافت ترافیک ۸۰/۴۴۳، گواهی Let's Encrypt خودکار، پراکسی `/api/*` به `behbar-api`، `/management/*` به `behbar-admin`، و بقیه به `behbar-site`
 
-ایمیج‌ها به‌صورت خودکار از سه ریپوی اصلی (`Behbar-API`، `Behbar`، `Behbar-Admin`) توسط GitHub Actions ساخته و به GHCR پوش می‌شوند — نیازی به دسترسی خریدار به سورس نیست.
+ایمیج‌ها به‌صورت خودکار آماده‌سازی شده و نیازی به کامپایل یا دسترسی به سورس‌کد خام نیست.
 
 ## مدیریت سرور با `beh-manager`
 
