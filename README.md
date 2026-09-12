@@ -43,19 +43,21 @@ Once complete, your access URLs and credentials will be displayed:
 
 ---
 
-## 4. Server Management Tool (`beh-manager`)
+## 4. Server Management Tool (`behbar`)
 
-Manage your installation anytime by running:
+Manage your installation anytime simply by running:
 
 ```bash
-sudo beh-manager
+sudo behbar
 ```
 
 Options available:
-1) Show service status
-2) Update & rebuild containers
-3) Change admin password
-4) Change domain name
+1) Update
+2) Change Password
+3) System Info & Credentials
+4) Switch to Another Domain
+5) Uninstall
+0) Exit
 
 ---
 
