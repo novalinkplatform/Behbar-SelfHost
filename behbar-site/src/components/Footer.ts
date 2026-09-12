@@ -61,28 +61,9 @@ function renderFooterLinks(settings?: SiteSettings): string {
 
 const FALLBACK_SITE_NAME = { fa: 'بهبار', en: 'Behbar' };
 
-const FALLBACK_SEO_PARAGRAPHS = [
-  {
-    fa: 'اسکریپت و سامانه جامع باربری و اسباب‌کشی آنلاین بهبار، یک راهکار نرم‌افزاری اختصاصی و پیشرفته برای اتوبارها، شرکت‌های حمل بار شهری و بین‌شهری، دفاتر لجستیک و استارتاپ‌های نوین حمل‌ونقل است. این محصول با حذف چالش‌ها و هزینه‌های بالای برنامه‌نویسی، بستری آماده، پایدار و با کارایی بسیار بالا را برای کسب‌وکارهای باربری فراهم می‌آورد تا در کوتاه‌ترین زمان ممکن، سامانه رزرواسیون آنلاین و مدیریت هوشمند ناوگان خود را با نام، نشان تجاری و دامنه اختصاصی راه‌اندازی نمایند.',
-    en: 'Behbar is a comprehensive software script and automation solution for online freight, hauling, and moving operations, designed specifically for moving companies, freight dispatchers, logistics firms, and transport startups. Eliminating heavy from-scratch development costs, it provides a modern, fast, and ready-to-deploy platform for business owners to launch their branded online booking and fleet management platform.',
-  },
-  {
-    fa: 'این سامانه بر پایه مدرن‌ترین فناوری‌های توسعه وب از جمله Node.js و زبان TypeScript بهینه‌سازی شده و از طراحی تمام‌واکنش‌گرا با فونت استاندارد Yekan Bakh بهره می‌برد. سیستم محاسبه هوشمند مسافت و برآورد زنده هزینه بر اساس کیلومتر، انتخاب چندمرحله‌ای ناوگان (وانت، نیسان، خاور، کامیون و تریلی)، تفکیک طبقات مبدأ و مقصد و جزئیات بسته‌بندی و نیروی کمکی، سیستم پیامکی احراز هویت سریع و مرکز پشتیبانی برخط از مهم‌ترین امکانات تعبیه‌شده در بخش کاربری این اسکریپت است.',
-    en: 'Built on a modern web stack with Node.js and TypeScript, the software features a responsive design styled with the Yekan Bakh typeface. Key user-facing capabilities include interactive map-based pickup and delivery selection, dynamic distance-based pricing, multi-tier vehicle selection (pickups, vans, light trucks, heavy trucks, and trailers), floor and elevator factors, packing and moving labor options, fast SMS verification, and live support chat.',
-  },
-  {
-    fa: 'پنل مدیریت یکپارچه و پیشرفته بهبار به مدیران امکان نظارت جامع بر روند سفارش‌ها، ثبت و دسته‌بندی ناوگان و رانندگان، مدیریت دقیق سطوح اختیارات پرسنل، آمار و گزارش‌های دقیق عملکردی، تنظیمات پویا روی قیمت‌گذاری و نرخ پایه‌ای، و ویرایش بلادرنگ تمام متون و صفحات وب‌سایت را بدون نیاز به دانش کدنویسی می‌دهد. ساختار سبک و بهینه‌سازی کم‌نظیر هسته سامانه، امکان اجرای روان بر روی انواع سرورها و استقرار خودکار را به ارمغان آورده است.',
-    en: 'The advanced Behbar management dashboard provides complete operational oversight: live order tracking, vehicle and driver onboarding, granular role-based access control, analytics and revenue reporting, dynamic pricing management, and visual content editing for all pages without coding. The lightweight, performant architecture ensures smooth execution across various hosting environments and fast deployment.',
-  },
-  {
-    fa: 'اسکریپت باربری آنلاین بهبار همراه با ۶ ماه پشتیبانی کامل، فایل‌های جامع راهنمای نصب و راه‌اندازی، و دسترسی به نسخه‌های به‌روزرسانی بعدی به‌صورت رسمی در مارکت معتبر ژاکت عرضه شده است. صفحه‌ای که مشاهده می‌فرمایید نسخه نمایشی زنده (Live Demo) سامانه است تا کارشناسان و خریداران گرامی بتوانند پیش از خرید، تمامی قابلیت‌های فنی، ظاهری و پنل کاربری و مدیریتی آن را بررسی فرمایند.',
-    en: 'The Behbar online transport script is officially distributed on the Zhaket marketplace, including 6 months of support, complete documentation and deployment guides, and future updates. The website you are viewing is the active Live Demo, enabling prospective buyers and review specialists to explore all frontend workflows and the management panel hands-on before purchasing.',
-  },
-];
-
-const SOCIAL_ICON_MAP: Record<SocialLinkSetting['platform'], keyof typeof icons> = {
-  whatsapp: 'whatsappFilled',
+const SOCIAL_ICON_MAP: Record<string, keyof typeof icons> = {
   telegram: 'telegramFilled',
+  whatsapp: 'whatsappFilled',
   instagram: 'instagramFilled',
   linkedin: 'linkedinFilled',
   youtube: 'youtubeFilled',
@@ -105,7 +86,9 @@ function renderSocialLinks(links: SocialLinkSetting[], colorStyle: string): stri
     <div class="footer-social" ${colorStyle}>
       ${links
         .map((link) => {
-          const icon = icons[SOCIAL_ICON_MAP[link.platform] ?? 'globe'];
+          const icon = link.customIconUrl
+            ? `<img src="${link.customIconUrl}" alt="${link.label}" style="width:20px;height:20px;object-fit:contain;border-radius:4px;" />`
+            : icons[SOCIAL_ICON_MAP[link.platform] ?? 'globe'];
           const isMail = link.platform === 'mail';
           return `<a href="${link.url}" ${isMail ? '' : 'target="_blank" rel="noopener"'} aria-label="${link.label}"><span class="icon">${icon}</span></a>`;
         })
@@ -174,13 +157,7 @@ export function renderFooter(settings?: SiteSettings): string {
       };
 
   const rawSeo = footerData?.seoParagraphs;
-  let sourceSeo: Array<{ fa: string; en?: string }> = [];
-  if (Array.isArray(rawSeo)) {
-    // If explicitly provided (including empty array []), respect it
-    sourceSeo = rawSeo;
-  } else if (rawSeo === undefined) {
-    sourceSeo = FALLBACK_SEO_PARAGRAPHS;
-  }
+  const sourceSeo: Array<{ fa: string; en?: string }> = Array.isArray(rawSeo) ? rawSeo : [];
 
   const seoParagraphs = sourceSeo.map((p) => ({
     fa: p.fa.replace(/به‌بار|به بار/g, 'بهبار'),

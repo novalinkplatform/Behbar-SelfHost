@@ -26,6 +26,7 @@ interface SocialLinkSetting {
   platform: string;
   label: string;
   url: string;
+  customIconUrl?: string;
 }
 
 interface ContactSettings {
@@ -60,14 +61,15 @@ interface CertificationsSettings {
 }
 
 const SOCIAL_PLATFORMS: { value: string; label: string }[] = [
-  { value: 'whatsapp', label: 'واتس‌اپ' },
   { value: 'telegram', label: 'تلگرام' },
+  { value: 'whatsapp', label: 'واتس‌اپ' },
   { value: 'instagram', label: 'اینستاگرام' },
   { value: 'linkedin', label: 'لینکدین' },
   { value: 'youtube', label: 'یوتیوب' },
   { value: 'twitterX', label: 'ایکس (توییتر)' },
   { value: 'facebook', label: 'فیس‌بوک' },
   { value: 'mail', label: 'ایمیل' },
+  { value: 'custom', label: 'سفارشی (با آیکون دلخواه)' },
   { value: 'globe', label: 'وبسایت / سایر' },
 ];
 
@@ -717,16 +719,17 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     list.innerHTML = socialLinks
       .map(
         (link, i) => `
-      <div class="settings-form-grid" data-social-link-index="${i}">
+      <div class="settings-form-grid" data-social-link-index="${i}" style="grid-template-columns: 140px 140px 1fr 1fr auto; align-items: end; gap: 8px;">
         <div class="form-field">
           <label>شبکه</label>
           <select data-field="platform">
             ${SOCIAL_PLATFORMS.map((p) => `<option value="${p.value}" ${p.value === link.platform ? 'selected' : ''}>${p.label}</option>`).join('')}
           </select>
         </div>
-        <div class="form-field"><label>برچسب</label><input type="text" data-field="label" value="${link.label}" /></div>
-        <div class="form-field"><label>لینک</label><input type="text" dir="ltr" data-field="url" value="${link.url}" /></div>
-        <button type="button" class="btn btn-ghost btn-sm" data-remove-social-link="${i}">حذف</button>
+        <div class="form-field"><label>برچسب</label><input type="text" data-field="label" value="${link.label}" placeholder="مثلاً: بله یا تلگرام" /></div>
+        <div class="form-field"><label>لینک</label><input type="text" dir="ltr" data-field="url" value="${link.url}" placeholder="https://..." /></div>
+        <div class="form-field"><label>آیکون دلخواه (اختیاری)</label><input type="text" dir="ltr" data-field="customIconUrl" value="${link.customIconUrl || ''}" placeholder="آدرس آیکون یا لوگو" /></div>
+        <button type="button" class="btn btn-ghost btn-sm" data-remove-social-link="${i}" style="margin-bottom: 4px;">حذف</button>
       </div>
     `,
       )
@@ -738,8 +741,9 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     socialLinks = els.map((el, i) => ({
       id: socialLinks[i]?.id ?? `social-${crypto.randomUUID().slice(0, 8)}`,
       platform: el.querySelector<HTMLSelectElement>('[data-field="platform"]')!.value,
-      label: el.querySelector<HTMLInputElement>('[data-field="label"]')!.value,
-      url: el.querySelector<HTMLInputElement>('[data-field="url"]')!.value,
+      label: el.querySelector<HTMLInputElement>('[data-field="label"]')!.value.trim(),
+      url: el.querySelector<HTMLInputElement>('[data-field="url"]')!.value.trim(),
+      customIconUrl: el.querySelector<HTMLInputElement>('[data-field="customIconUrl"]')?.value.trim() || undefined,
     }));
   }
 
@@ -753,7 +757,7 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
 
   document.getElementById('social-link-add-btn')?.addEventListener('click', () => {
     readSocialLinksFromDom();
-    socialLinks.push({ id: `social-${crypto.randomUUID().slice(0, 8)}`, platform: 'globe', label: '', url: '' });
+    socialLinks.push({ id: `social-${crypto.randomUUID().slice(0, 8)}`, platform: 'telegram', label: '', url: '' });
     renderSocialLinksList();
   });
 

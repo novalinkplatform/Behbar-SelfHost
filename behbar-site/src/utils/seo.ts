@@ -1,4 +1,4 @@
-import type { DynamicArticle, DynamicCustomPage, SeoSettings } from './dynamicContent.ts';
+import type { DynamicArticle, DynamicCustomPage, SeoSettings, HeroSloganSetting } from './dynamicContent.ts';
 
 function ensureMeta(name: string, attr: 'name' | 'property' = 'name'): HTMLMetaElement {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${name}"]`);
@@ -36,6 +36,46 @@ export function applySiteSeoSettings(seo?: SeoSettings): void {
     ensureMeta('og:image', 'property').setAttribute('content', seo.defaultOgImage);
     ensureMeta('twitter:image').setAttribute('content', seo.defaultOgImage);
   }
+}
+
+// به‌روزرسانی متاتگ‌های سئو و اسکیمای ساختاریافته گوگل بر اساس شعار سایت و نام برند
+export function applyHeroSloganSeo(
+  heroSlogan?: HeroSloganSetting,
+  siteName?: { fa?: string; en?: string },
+): void {
+  const brandFa = siteName?.fa?.trim() || 'بهبار';
+  const headline = heroSlogan?.headline?.fa?.trim() || 'حمل و جابه‌جایی، ساده‌تر از همیشه';
+  const subtitle = heroSlogan?.subtitle?.fa?.trim() || 'برای اثاث‌کشی یا حمل بار درخواست خود را ثبت کنید؛ در سریع‌ترین زمان با شما هماهنگ می‌کنیم.';
+
+  const fullDescription = `${brandFa} | ${headline} - ${subtitle}`;
+
+  // Standard Meta Description
+  ensureMeta('description').setAttribute('content', fullDescription);
+
+  // Open Graph
+  ensureMeta('og:description', 'property').setAttribute('content', fullDescription);
+  ensureMeta('og:title', 'property').setAttribute('content', `${brandFa} | ${headline}`);
+  ensureMeta('og:site_name', 'property').setAttribute('content', brandFa);
+
+  // Twitter Cards
+  ensureMeta('twitter:description').setAttribute('content', fullDescription);
+  ensureMeta('twitter:title').setAttribute('content', `${brandFa} | ${headline}`);
+
+  // Schema.org JSON-LD Structured Data for Google Rich Snippets
+  document.querySelectorAll<HTMLScriptElement>('script[type="application/ld+json"]').forEach((script) => {
+    try {
+      const data = JSON.parse(script.textContent ?? '') as Record<string, unknown>;
+      let changed = false;
+      if (data['@type'] === 'WebSite' || data['@type'] === 'LocalBusiness' || data['@type'] === 'Organization') {
+        data.description = fullDescription;
+        if (data.name) data.name = brandFa;
+        changed = true;
+      }
+      if (changed) script.textContent = JSON.stringify(data);
+    } catch {
+      /* ignore invalid JSON-LD */
+    }
+  });
 }
 
 // فقط در صفحه‌ی مقاله، بعد از دریافت مقاله‌ی واقعی فراخوانی می‌شود — تگ‌های ثابت و عمومی

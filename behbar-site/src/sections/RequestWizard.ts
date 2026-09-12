@@ -202,6 +202,7 @@ function renderLocationStep(prefix: string, label: string, note?: string, showCo
         'برای مسیریابی دقیق راننده، روی نقشه بزنید یا نشانگر را جابه‌جا کنید.',
         'Tap the map or move the marker so the driver can navigate accurately.',
       )}</p>
+      <p class="request-panel-error" id="${prefix}-coverage-error" hidden style="font-weight: 600; color: #dc2626; margin-top: 8px;"></p>
     </div>
     <div class="form-field">
       <label for="${prefix}-notes">${pick('توضیحات بیشتر (اختیاری)', 'Additional notes (optional)')}</label>
@@ -778,16 +779,67 @@ export function initRequestWizard(
     if (step.id === 'service') return state.serviceId !== null;
     if (step.id === 'vehicle') return state.vehicleId !== null;
     if (step.id === 'origin') {
-      const valid = origin.getValue() !== null && state.originPropertyType !== null && (originMap?.hasInteracted() ?? false);
+      const originVal = origin.getValue();
+      const coverageError = document.getElementById('wizard-origin-coverage-error');
+      if (coverageError) coverageError.hidden = true;
+
+      if (serviceCities?.coverageMode === 'selected' && serviceCities.originCity?.city) {
+        const allowedOriginCity = serviceCities.originCity.city;
+        if (originVal && originVal.city && originVal.city !== allowedOriginCity) {
+          if (coverageError) {
+            coverageError.textContent = pick(
+              `متأسفانه در حال حاضر ثبت درخواست فقط از مبدأ «${allowedOriginCity}» امکان‌پذیر است.`,
+              `Currently, requests can only be placed from "${serviceCities.originCity.cityEn || allowedOriginCity}".`,
+            );
+            coverageError.hidden = false;
+          }
+          return false;
+        }
+      }
+
+      const valid = originVal !== null && state.originPropertyType !== null && (originMap?.hasInteracted() ?? false);
       const mapError = document.getElementById('wizard-origin-map-error');
-      if (mapError) mapError.hidden = origin.getValue() === null || (originMap?.hasInteracted() ?? false);
+      if (mapError) mapError.hidden = originVal === null || (originMap?.hasInteracted() ?? false);
       return valid;
     }
     if (step.id === 'destination') {
+      const destVal = destination.getValue();
+      const coverageError = document.getElementById('wizard-destination-coverage-error');
+      if (coverageError) coverageError.hidden = true;
+
+      if (serviceCities?.coverageMode === 'selected') {
+        const allowedCities: string[] = [];
+        if (serviceCities.originCity?.city) {
+          allowedCities.push(serviceCities.originCity.city);
+        }
+        if (Array.isArray(serviceCities.destinationCities)) {
+          for (const d of serviceCities.destinationCities) {
+            if (d.city && !allowedCities.includes(d.city)) {
+              allowedCities.push(d.city);
+            }
+          }
+        }
+
+        if (allowedCities.length > 0 && destVal && destVal.city) {
+          const isAllowed = allowedCities.includes(destVal.city);
+          if (!isAllowed) {
+            if (coverageError) {
+              const allowedNamesStr = allowedCities.join('، ');
+              coverageError.textContent = pick(
+                `متأسفانه در حال حاضر به مقصد «${destVal.city}» خدمات ارائه نمی‌شود. مقصدهای مجاز: ${allowedNamesStr}`,
+                `Service to "${destVal.city}" is not available. Allowed destinations: ${allowedCities.join(', ')}`,
+              );
+              coverageError.hidden = false;
+            }
+            return false;
+          }
+        }
+      }
+
       const valid =
-        destination.getValue() !== null && state.destinationPropertyType !== null && (destinationMap?.hasInteracted() ?? false);
+        destVal !== null && state.destinationPropertyType !== null && (destinationMap?.hasInteracted() ?? false);
       const mapError = document.getElementById('wizard-destination-map-error');
-      if (mapError) mapError.hidden = destination.getValue() === null || (destinationMap?.hasInteracted() ?? false);
+      if (mapError) mapError.hidden = destVal === null || (destinationMap?.hasInteracted() ?? false);
       return valid;
     }
     if (step.id === 'origin-floor') return state.originFloor !== null && (state.originFloor === 0 || state.originElevator !== null);

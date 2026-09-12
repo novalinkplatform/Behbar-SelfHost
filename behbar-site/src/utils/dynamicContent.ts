@@ -57,9 +57,10 @@ export interface ServiceCategoriesSettings {
 
 export interface SocialLinkSetting {
   id: string;
-  platform: 'whatsapp' | 'telegram' | 'instagram' | 'linkedin' | 'youtube' | 'twitterX' | 'facebook' | 'mail' | 'globe';
+  platform: 'telegram' | 'whatsapp' | 'instagram' | 'linkedin' | 'youtube' | 'twitterX' | 'facebook' | 'mail' | 'globe' | string;
   label: string;
   url: string;
+  customIconUrl?: string;
 }
 
 export interface ContactSettings {

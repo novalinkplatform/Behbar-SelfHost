@@ -89,12 +89,35 @@ export function renderSetupWizardView(): string {
         </div>
 
         <div data-setup-step="3" class="setup-wizard-step" hidden>
-          <h2>اطلاعات تماس</h2>
+          <h2>اطلاعات تماس و شبکه‌های اجتماعی</h2>
           <div class="form-field">
-            <label for="setup-phone-display">شماره تماس</label>
+            <label for="setup-phone-display">شماره تماس پشتیبانی</label>
             <input type="text" id="setup-phone-display" dir="ltr" placeholder="021-200200 یا 0912..." />
           </div>
           <p class="setup-wizard-hint">لینک شماره‌گیری مستقیم (جهت تماس با کلیک مشتریان) به‌صورت خودکار از روی همین شماره ساخته می‌شود.</p>
+
+          <div class="settings-form-grid" style="margin-top: 16px; gap: 12px;">
+            <div class="form-field">
+              <label for="setup-whatsapp">واتس‌اپ (شماره یا لینک)</label>
+              <input type="text" id="setup-whatsapp" dir="ltr" placeholder="0912... یا https://wa.me/..." />
+            </div>
+            <div class="form-field">
+              <label for="setup-telegram">تلگرام (آیدی یا لینک)</label>
+              <input type="text" id="setup-telegram" dir="ltr" placeholder="channel_id یا https://t.me/..." />
+            </div>
+          </div>
+
+          <div class="settings-form-grid" style="margin-top: 12px; gap: 12px;">
+            <div class="form-field">
+              <label for="setup-instagram">اینستاگرام (آیدی یا لینک)</label>
+              <input type="text" id="setup-instagram" dir="ltr" placeholder="page_id یا https://instagram.com/..." />
+            </div>
+            <div class="form-field">
+              <label for="setup-email">ایمیل پشتیبانی</label>
+              <input type="email" id="setup-email" dir="ltr" placeholder="info@example.com" />
+            </div>
+          </div>
+          <p class="setup-wizard-hint">وارد کردن شبکه‌های اجتماعی اختیاری است؛ مواردی که پر کنید در فوتر و راه‌های ارتباطی سایت قرار می‌گیرند.</p>
         </div>
 
         <div data-setup-step="4" class="setup-wizard-step" hidden>
@@ -229,11 +252,62 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
         }
       } else if (currentStep === 3) {
         const phoneDisplay = (document.getElementById('setup-phone-display') as HTMLInputElement).value.trim();
-        if (phoneDisplay) {
-          const phoneTelHref = formatPhoneTelHref(phoneDisplay);
-          const contact = (settings.contact as Record<string, unknown> | undefined) ?? {};
-          await updateSetting('contact', { ...contact, phoneDisplay, phoneTelHref });
+        const whatsapp = (document.getElementById('setup-whatsapp') as HTMLInputElement).value.trim();
+        const telegram = (document.getElementById('setup-telegram') as HTMLInputElement).value.trim();
+        const instagram = (document.getElementById('setup-instagram') as HTMLInputElement).value.trim();
+        const email = (document.getElementById('setup-email') as HTMLInputElement).value.trim();
+
+        const contact = (settings.contact as Record<string, unknown> | undefined) ?? {};
+        const phoneTelHref = phoneDisplay ? formatPhoneTelHref(phoneDisplay) : ((contact.phoneTelHref as string | undefined) ?? '');
+
+        type SocialEntry = { id: string; platform: string; label: string; url: string; customIconUrl?: string };
+        const existingSocial: SocialEntry[] = Array.isArray(contact.socialLinks) ? [...(contact.socialLinks as SocialEntry[])] : [];
+
+        function upsertSocial(platform: string, label: string, rawVal: string, urlFormatter: (val: string) => string) {
+          if (!rawVal) return;
+          const idx = existingSocial.findIndex((s) => s.platform === platform);
+          const url = urlFormatter(rawVal);
+          if (idx >= 0) {
+            existingSocial[idx] = { ...existingSocial[idx], label, url };
+          } else {
+            existingSocial.push({ id: `social-${platform}`, platform, label, url });
+          }
         }
+
+        if (whatsapp) {
+          upsertSocial('whatsapp', 'واتس‌اپ', whatsapp, (v) => {
+            if (v.startsWith('http')) return v;
+            const digits = v.replace(/\D/g, '');
+            const intl = digits.startsWith('0') ? '98' + digits.slice(1) : digits.startsWith('98') ? digits : '98' + digits;
+            return `https://wa.me/${intl}`;
+          });
+        }
+        if (telegram) {
+          upsertSocial('telegram', 'تلگرام', telegram, (v) => {
+            if (v.startsWith('http')) return v;
+            const handle = v.replace(/^@/, '');
+            return `https://t.me/${handle}`;
+          });
+        }
+        if (instagram) {
+          upsertSocial('instagram', 'اینستاگرام', instagram, (v) => {
+            if (v.startsWith('http')) return v;
+            const handle = v.replace(/^@/, '');
+            return `https://instagram.com/${handle}`;
+          });
+        }
+        if (email) {
+          upsertSocial('mail', 'ایمیل', email, (v) => (v.startsWith('mailto:') ? v : `mailto:${v}`));
+        }
+
+        const newContact = {
+          ...contact,
+          phoneDisplay: phoneDisplay || (contact.phoneDisplay as string) || '',
+          phoneTelHref,
+          socialLinks: existingSocial,
+        };
+        await updateSetting('contact', newContact);
+        settings.contact = newContact;
       } else if (currentStep === 4) {
         const province = (document.getElementById('setup-origin-province') as HTMLSelectElement).value.trim();
         const city = (document.getElementById('setup-origin-city') as HTMLSelectElement).value.trim();
@@ -345,8 +419,23 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
       const branding = (settings.branding as { logoUrl?: string } | undefined) ?? {};
       (document.getElementById('setup-logo-url') as HTMLInputElement).value = branding.logoUrl ?? '';
 
-      const contact = (settings.contact as { phoneDisplay?: string; phoneTelHref?: string } | undefined) ?? {};
+      const contact = (settings.contact as {
+        phoneDisplay?: string;
+        phoneTelHref?: string;
+        socialLinks?: Array<{ platform: string; url: string }>;
+      } | undefined) ?? {};
       (document.getElementById('setup-phone-display') as HTMLInputElement).value = contact.phoneDisplay ?? '';
+
+      const sLinks = contact.socialLinks ?? [];
+      const wa = sLinks.find((s) => s.platform === 'whatsapp')?.url ?? '';
+      const tg = sLinks.find((s) => s.platform === 'telegram')?.url ?? '';
+      const ig = sLinks.find((s) => s.platform === 'instagram')?.url ?? '';
+      const mail = sLinks.find((s) => s.platform === 'mail')?.url ?? '';
+
+      (document.getElementById('setup-whatsapp') as HTMLInputElement).value = wa;
+      (document.getElementById('setup-telegram') as HTMLInputElement).value = tg;
+      (document.getElementById('setup-instagram') as HTMLInputElement).value = ig;
+      (document.getElementById('setup-email') as HTMLInputElement).value = mail.replace(/^mailto:/, '');
 
       const cities = settings.service_cities as { originCity?: { city?: string; province?: string } } | undefined;
       const initialProv = cities?.originCity?.province ?? '';

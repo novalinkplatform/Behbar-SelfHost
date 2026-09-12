@@ -22,7 +22,7 @@ import { pick } from './i18n/lang.ts';
 import { loadSettings, fetchPublicTestimonials, fetchPublicStories } from './utils/dynamicContent.ts';
 import type { PublicTestimonial, PublicStory, HomepageSection } from './utils/dynamicContent.ts';
 import { applyTheme } from './utils/theme.ts';
-import { applySiteSeoSettings } from './utils/seo.ts';
+import { applySiteSeoSettings, applyHeroSloganSeo } from './utils/seo.ts';
 import { applyBranding, applySiteNameEverywhere } from './utils/branding.ts';
 import { forceSiteLanguageIfSingleMode, hideLanguageToggleIfSingleMode } from './i18n/languageMode.ts';
 import { DEFAULT_VEHICLE_TYPES } from './data/services.ts';
@@ -208,6 +208,7 @@ async function init(): Promise<void> {
   forceSiteLanguageIfSingleMode(settings.language_mode);
   applyTheme(settings.theme);
   applySiteSeoSettings(settings.seo);
+  applyHeroSloganSeo(settings.hero_slogan, settings.site_name);
   const vehicleTypes = settings.vehicle_types?.length ? settings.vehicle_types : DEFAULT_VEHICLE_TYPES;
   renderApp(settings, testimonials, stories);
   markAppReady();
