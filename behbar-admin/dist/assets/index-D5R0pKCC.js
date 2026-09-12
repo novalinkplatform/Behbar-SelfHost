@@ -2658,75 +2658,89 @@ var e=Object.create,t=Object.defineProperty,n=Object.getOwnPropertyDescriptor,r=
     </div>
 
     <div class="settings-panel" data-settings-panel="backup-update" ${n(`backup-update`)}>
-      <div class="editor-sidebar-card">
-        <h3>پشتیبان‌گیری دستی</h3>
-        <p class="settings-panel-hint">یک فایل کامل از تمام محتوای سایت (درخواست‌ها، کارمندان، تنظیمات، مقالات، نظرات، چت‌ها، استوری‌ها و ...) دانلود یا بازیابی کنید.</p>
-        <div class="settings-panel-footer" style="justify-content:flex-start">
-          <button type="button" class="btn btn-secondary" id="backup-download-btn">
-            <span class="icon">${u.download}</span>
-            دانلود بک‌آپ کامل
-          </button>
-        </div>
-        <p class="error-text" id="backup-download-error" hidden></p>
-
-        <hr style="margin:var(--space-5) 0; border:none; border-top:1px solid var(--border)" />
-
-        <label for="backup-restore-file" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:var(--space-2)">بازیابی از فایل بک‌آپ</label>
-        <input type="file" id="backup-restore-file" accept=".sql" />
-        <p class="settings-panel-hint" style="color:var(--danger)">
-          توجه: بازیابی، تمام داده‌های فعلی سایت را با محتوای فایل بک‌آپ جایگزین می‌کند و غیرقابل‌بازگشت است.
-        </p>
-        <div class="settings-panel-footer" style="justify-content:flex-start">
-          <button type="button" class="btn btn-secondary" id="backup-restore-btn" disabled>بازیابی از این فایل</button>
-        </div>
-        <p class="error-text" id="backup-restore-error" hidden></p>
-        <p class="settings-saved-note" id="backup-restore-success" hidden>بازیابی با موفقیت انجام شد.</p>
+      <div class="settings-subtabs">
+        <button type="button" class="settings-tab is-active" data-backup-subtab="manual">پشتیبان‌گیری دستی</button>
+        <button type="button" class="settings-tab" data-backup-subtab="drive">پشتیبان ابری (گوگل درایو)</button>
+        <button type="button" class="settings-tab" data-backup-subtab="update">به‌روزرسانی نرم‌افزار</button>
       </div>
 
-      <div class="editor-sidebar-card">
-        <h3>ارسال خودکار روزانه به گوگل درایو</h3>
-        <p class="settings-panel-hint">
-          با اتصال حساب گوگل خودتان، هر شب یک نسخه‌ی پشتیبان به‌صورت خودکار در Google Drive شما ذخیره می‌شود.
-        </p>
+      <div class="backup-subpanel" data-backup-subpanel="manual">
+        <div class="editor-sidebar-card">
+          <h3>پشتیبان‌گیری دستی</h3>
+          <p class="settings-panel-hint">یک فایل کامل از تمام محتوای سایت (درخواست‌ها، کارمندان، تنظیمات، مقالات، نظرات، چت‌ها، استوری‌ها و ...) دانلود یا بازیابی کنید.</p>
+          <div class="settings-panel-footer" style="justify-content:flex-start">
+            <button type="button" class="btn btn-secondary" id="backup-download-btn">
+              <span class="icon">${u.download}</span>
+              دانلود بک‌آپ کامل
+            </button>
+          </div>
+          <p class="error-text" id="backup-download-error" hidden></p>
 
-        <div class="drive-connection-status" id="drive-connection-status"></div>
+          <hr style="margin:var(--space-5) 0; border:none; border-top:1px solid var(--border)" />
 
-        <details class="drive-oauth-setup">
-          <summary>راه‌اندازی اولیه (فقط یک‌بار لازم است)</summary>
-          <ol class="settings-panel-hint" style="padding-inline-start:1.2rem; margin:var(--space-2) 0">
-            <li>در <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console → Credentials</a> یک «OAuth client ID» از نوع Web application بسازید.</li>
-            <li>این آدرس را به‌عنوان «Authorized redirect URI» اضافه کنید: <code id="drive-redirect-uri" dir="ltr"></code></li>
-            <li>شناسه (Client ID) و کلید (Client Secret) را اینجا وارد و ذخیره کنید.</li>
-            <li>روی «اتصال به گوگل درایو» بزنید و با حساب گوگل خودتان وارد شوید.</li>
-          </ol>
-        </details>
-
-        <div class="form-field" style="margin-top:var(--space-3)">
-          <label for="backup-drive-client-id">Client ID</label>
-          <input type="text" id="backup-drive-client-id" dir="ltr" placeholder="xxxxx.apps.googleusercontent.com" />
-        </div>
-        <div class="form-field">
-          <label for="backup-drive-client-secret">Client Secret</label>
-          <input type="password" id="backup-drive-client-secret" dir="ltr" placeholder="GOCSPX-..." />
-        </div>
-        <div class="form-field">
-          <label for="backup-drive-folder">شناسه‌ی پوشه‌ی Google Drive (اختیاری)</label>
-          <input type="text" id="backup-drive-folder" dir="ltr" placeholder="1AbCdEfG..." />
-        </div>
-        <label class="settings-inline-toggle"><input type="checkbox" id="backup-drive-enabled" /> ارسال خودکار روزانه فعال باشد</label>
-
-        <p class="error-text" id="backup-drive-error" hidden></p>
-        <div class="settings-panel-footer">
-          <button type="button" class="btn btn-secondary" id="backup-drive-test-btn">ارسال آزمایشی الان</button>
-          <button type="button" class="btn btn-secondary" id="backup-drive-save-btn">ذخیره تنظیمات</button>
-          <button type="button" class="btn btn-primary" id="backup-drive-connect-btn">اتصال به گوگل درایو</button>
-          <button type="button" class="btn btn-ghost" id="backup-drive-disconnect-btn" hidden>قطع اتصال</button>
+          <label for="backup-restore-file" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:var(--space-2)">بازیابی از فایل بک‌آپ</label>
+          <input type="file" id="backup-restore-file" accept=".sql" />
+          <p class="settings-panel-hint" style="color:var(--danger)">
+            توجه: بازیابی، تمام داده‌های فعلی سایت را با محتوای فایل بک‌آپ جایگزین می‌کند و غیرقابل‌بازگشت است.
+          </p>
+          <div class="settings-panel-footer" style="justify-content:flex-start">
+            <button type="button" class="btn btn-secondary" id="backup-restore-btn" disabled>بازیابی از این فایل</button>
+          </div>
+          <p class="error-text" id="backup-restore-error" hidden></p>
+          <p class="settings-saved-note" id="backup-restore-success" hidden>بازیابی با موفقیت انجام شد.</p>
         </div>
       </div>
 
-      ${Ci()}
+      <div class="backup-subpanel" data-backup-subpanel="drive" hidden>
+        <div class="editor-sidebar-card">
+          <div class="card-header-action">
+            <h3 style="margin:0;">ارسال خودکار روزانه به گوگل درایو</h3>
+            <button type="button" class="btn btn-primary btn-sm" id="backup-drive-save-btn">ذخیره تنظیمات</button>
+          </div>
+          <p class="settings-panel-hint">
+            با اتصال حساب گوگل خودتان، هر شب یک نسخه‌ی پشتیبان به‌صورت خودکار در Google Drive شما ذخیره می‌شود.
+          </p>
+
+          <div class="drive-connection-status" id="drive-connection-status"></div>
+
+          <details class="drive-oauth-setup">
+            <summary>راه‌اندازی اولیه (فقط یک‌بار لازم است)</summary>
+            <ol class="settings-panel-hint" style="padding-inline-start:1.2rem; margin:var(--space-2) 0">
+              <li>در <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console → Credentials</a> یک «OAuth client ID» از نوع Web application بسازید.</li>
+              <li>این آدرس را به‌عنوان «Authorized redirect URI» اضافه کنید: <code id="drive-redirect-uri" dir="ltr"></code></li>
+              <li>شناسه (Client ID) و کلید (Client Secret) را اینجا وارد و ذخیره کنید.</li>
+              <li>روی «اتصال به گوگل درایو» بزنید و با حساب گوگل خودتان وارد شوید.</li>
+            </ol>
+          </details>
+
+          <div class="form-field" style="margin-top:var(--space-3)">
+            <label for="backup-drive-client-id">Client ID</label>
+            <input type="text" id="backup-drive-client-id" dir="ltr" placeholder="xxxxx.apps.googleusercontent.com" />
+          </div>
+          <div class="form-field">
+            <label for="backup-drive-client-secret">Client Secret</label>
+            <input type="password" id="backup-drive-client-secret" dir="ltr" placeholder="GOCSPX-..." />
+          </div>
+          <div class="form-field">
+            <label for="backup-drive-folder">شناسه‌ی پوشه‌ی Google Drive (اختیاری)</label>
+            <input type="text" id="backup-drive-folder" dir="ltr" placeholder="1AbCdEfG..." />
+          </div>
+          <label class="settings-inline-toggle"><input type="checkbox" id="backup-drive-enabled" /> ارسال خودکار روزانه فعال باشد</label>
+
+          <p class="error-text" id="backup-drive-error" hidden></p>
+          <div class="settings-panel-footer">
+            <button type="button" class="btn btn-secondary" id="backup-drive-test-btn">ارسال آزمایشی الان</button>
+            <button type="button" class="btn btn-primary" id="backup-drive-connect-btn">اتصال به گوگل درایو</button>
+            <button type="button" class="btn btn-ghost" id="backup-drive-disconnect-btn" hidden>قطع اتصال</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="backup-subpanel" data-backup-subpanel="update" hidden>
+        ${Ci()}
+      </div>
     </div>
-  `}function Gi(e,t){let n=document.getElementById(`settings-error`),r=document.getElementById(`settings-saved-note`);if(!n||!r)return;if(Li(t=>e?.(`page-editor`,t)),t){let e=document.querySelector(`[data-settings-tab="${t}"]`);e&&(document.querySelectorAll(`[data-settings-tab]`).forEach(e=>e.classList.remove(`is-active`)),e.classList.add(`is-active`),document.querySelectorAll(`[data-settings-panel]`).forEach(e=>{e.hidden=e.dataset.settingsPanel!==t}))}let i=g();Gn().then(()=>Z(document.body));function a(){r.hidden=!1,window.setTimeout(()=>r.hidden=!0,2500)}function o(e){n.hidden=!1,n.textContent=e instanceof Error?e.message:`خطایی پیش آمد.`}document.querySelectorAll(`[data-settings-tab]`).forEach(e=>{e.addEventListener(`click`,()=>{document.querySelectorAll(`[data-settings-tab]`).forEach(e=>e.classList.remove(`is-active`)),e.classList.add(`is-active`),document.querySelectorAll(`[data-settings-panel]`).forEach(t=>{t.hidden=t.dataset.settingsPanel!==e.dataset.settingsTab})})});let s={},c={};function l(e){let t=document.getElementById(`settings-${e}-preview`),n=document.getElementById(`settings-${e}-url`)?.value.trim();t&&(t.innerHTML=n?`<img src="${n}" alt="" />`:``)}function u(e){let t=document.getElementById(`settings-${e}-url`),n=document.getElementById(`settings-${e}-upload-btn`),r=document.getElementById(`settings-${e}-file-input`),i=document.getElementById(`settings-branding-upload-error`);!t||!n||!r||(t.addEventListener(`input`,()=>l(e)),n.addEventListener(`click`,()=>r.click()),r.addEventListener(`change`,async()=>{let a=r.files?.[0];if(!a)return;i&&(i.hidden=!0),n.disabled=!0;let o=n.textContent;n.textContent=`در حال آپلود...`;try{let n=await Se(a);t.value=n,l(e)}catch(e){i&&(i.hidden=!1,i.textContent=e instanceof Error?e.message:`آپلود عکس ناموفق بود.`)}finally{r.value=``,n.disabled=!1,n.textContent=o}}))}u(`logo`),u(`favicon`);function d(){let e=s.site_name??{fa:``,en:``},t=e.fa?.trim()||``,n=e.en?.trim()||``,r=document.getElementById(`settings-site-name-fa`),i=document.getElementById(`settings-site-name-en`);r.value=t,i.value=n,document.getElementById(`settings-language-mode`).value=s.language_mode??`both`;let a=s.branding??{};document.getElementById(`settings-logo-url`).value=a.logoUrl??``,document.getElementById(`settings-favicon-url`).value=a.faviconUrl??``,l(`logo`),l(`favicon`);let o=s.footer??{seoParagraphs:[],copyright:{fa:``,en:``}},c=document.getElementById(`settings-footer-paragraphs`);c.innerHTML=o.seoParagraphs.map((e,t)=>`
+  `}function Gi(e,t){let n=document.getElementById(`settings-error`),r=document.getElementById(`settings-saved-note`);if(!n||!r)return;if(Li(t=>e?.(`page-editor`,t)),t){let e=document.querySelector(`[data-settings-tab="${t}"]`);e&&(document.querySelectorAll(`[data-settings-tab]`).forEach(e=>e.classList.remove(`is-active`)),e.classList.add(`is-active`),document.querySelectorAll(`[data-settings-panel]`).forEach(e=>{e.hidden=e.dataset.settingsPanel!==t}))}let i=g();Gn().then(()=>Z(document.body));function a(){r.hidden=!1,window.setTimeout(()=>r.hidden=!0,2500)}function o(e){n.hidden=!1,n.textContent=e instanceof Error?e.message:`خطایی پیش آمد.`}document.querySelectorAll(`[data-settings-tab]`).forEach(e=>{e.addEventListener(`click`,()=>{document.querySelectorAll(`[data-settings-tab]`).forEach(e=>e.classList.remove(`is-active`)),e.classList.add(`is-active`),document.querySelectorAll(`[data-settings-panel]`).forEach(t=>{t.hidden=t.dataset.settingsPanel!==e.dataset.settingsTab})})}),document.querySelectorAll(`[data-backup-subtab]`).forEach(e=>{e.addEventListener(`click`,()=>{document.querySelectorAll(`[data-backup-subtab]`).forEach(e=>e.classList.remove(`is-active`)),e.classList.add(`is-active`),document.querySelectorAll(`[data-backup-subpanel]`).forEach(t=>{t.hidden=t.dataset.backupSubpanel!==e.dataset.backupSubtab})})});let s={},c={};function l(e){let t=document.getElementById(`settings-${e}-preview`),n=document.getElementById(`settings-${e}-url`)?.value.trim();t&&(t.innerHTML=n?`<img src="${n}" alt="" />`:``)}function u(e){let t=document.getElementById(`settings-${e}-url`),n=document.getElementById(`settings-${e}-upload-btn`),r=document.getElementById(`settings-${e}-file-input`),i=document.getElementById(`settings-branding-upload-error`);!t||!n||!r||(t.addEventListener(`input`,()=>l(e)),n.addEventListener(`click`,()=>r.click()),r.addEventListener(`change`,async()=>{let a=r.files?.[0];if(!a)return;i&&(i.hidden=!0),n.disabled=!0;let o=n.textContent;n.textContent=`در حال آپلود...`;try{let n=await Se(a);t.value=n,l(e)}catch(e){i&&(i.hidden=!1,i.textContent=e instanceof Error?e.message:`آپلود عکس ناموفق بود.`)}finally{r.value=``,n.disabled=!1,n.textContent=o}}))}u(`logo`),u(`favicon`);function d(){let e=s.site_name??{fa:``,en:``},t=e.fa?.trim()||``,n=e.en?.trim()||``,r=document.getElementById(`settings-site-name-fa`),i=document.getElementById(`settings-site-name-en`);r.value=t,i.value=n,document.getElementById(`settings-language-mode`).value=s.language_mode??`both`;let a=s.branding??{};document.getElementById(`settings-logo-url`).value=a.logoUrl??``,document.getElementById(`settings-favicon-url`).value=a.faviconUrl??``,l(`logo`),l(`favicon`);let o=s.footer??{seoParagraphs:[],copyright:{fa:``,en:``}},c=document.getElementById(`settings-footer-paragraphs`);c.innerHTML=o.seoParagraphs.map((e,t)=>`
         <div class="settings-form-grid" data-footer-paragraph="${t}">
           <div class="form-field" data-i18n="fa"><label>پاراگراف ${t+1} (فارسی)</label><textarea rows="3" data-field="fa">${e.fa}</textarea></div>
           <div class="form-field" data-i18n="en"><label>پاراگراف ${t+1} (انگلیسی)</label><textarea rows="3" dir="ltr" data-field="en">${e.en}</textarea></div>
@@ -2781,7 +2795,7 @@ var e=Object.create,t=Object.defineProperty,n=Object.getOwnPropertyDescriptor,r=
           <div class="license-timeline-labels"><span>${a-o} روز گذشته</span><span>${o} روز مانده</span></div>
         </div>
       </div>
-    `}function D(){let e=c.googleDrive??{enabled:!1,clientId:``,clientSecret:``,folderId:``};document.getElementById(`backup-drive-enabled`).checked=!!e.enabled,document.getElementById(`backup-drive-client-id`).value=e.clientId??``,document.getElementById(`backup-drive-client-secret`).value=e.clientSecret??``,document.getElementById(`backup-drive-folder`).value=e.folderId??``,O(!!e.refreshToken)}function O(e){let t=document.getElementById(`drive-connection-status`),n=document.getElementById(`backup-drive-disconnect-btn`);t&&(t.innerHTML=e?`<span class="article-status-badge article-status-published">متصل به گوگل درایو</span>`:`<span class="article-status-badge">هنوز متصل نشده</span>`),n&&(n.hidden=!e)}function ee(e,t){let n=document.getElementById(`theme-${e}`),r=document.getElementById(`theme-${e}-picker`);n&&(n.value=t),r&&/^#[0-9a-fA-F]{6}$/.test(t)&&(r.value=t)}function k(){let e=s.theme??{};Bi.forEach(t=>ee(t.key,e[t.key]??Vi[t.key]))}document.querySelectorAll(`[data-theme-picker]`).forEach(e=>{e.addEventListener(`input`,()=>{let t=e.dataset.themePicker;ee(t,e.value)})}),document.getElementById(`theme-reset-btn`)?.addEventListener(`click`,()=>{Bi.forEach(e=>ee(e.key,Vi[e.key]))}),document.querySelectorAll(`[data-save-setting="theme"]`).forEach(e=>{e.addEventListener(`click`,async()=>{try{await Q(e,async()=>{let e={};Bi.forEach(t=>{let n=document.getElementById(`theme-${t.key}`).value.trim();e[t.key]=/^#[0-9a-fA-F]{6}$/.test(n)?n:Vi[t.key]}),e.quickActionsStyle=(s.theme??{}).quickActionsStyle===`fixed`?`fixed`:`floating`,await V(`theme`,e),s.theme=e}),a()}catch(e){o(e)}})}),Te().then(e=>{s=e,d(),v(),k(),S(),T()}).catch(o),i&&x(i,`plugins`)&&tt().then(e=>{c=e,D()}).catch(o),i&&x(i,`settings`)&&Me().then(e=>E(e)).catch(o);let A=document.getElementById(`license-key-input`),j=document.getElementById(`license-activate-btn`),te=document.getElementById(`license-activate-error`);j?.addEventListener(`click`,async()=>{if(!A||!te)return;let e=A.value.trim();if(te.hidden=!0,!e){te.hidden=!1,te.textContent=`کد لایسنس را وارد کنید.`;return}j.disabled=!0;try{let t=await Ne(e);A.value=``,E(t)}catch(e){te.hidden=!1,te.textContent=e instanceof Error?e.message:`فعال‌سازی لایسنس ناموفق بود.`}finally{j.disabled=!1}});let M=document.getElementById(`backup-download-btn`),N=document.getElementById(`backup-download-error`);M?.addEventListener(`click`,async()=>{if(N){N.hidden=!0,M.disabled=!0;try{await at()}catch(e){N.hidden=!1,N.textContent=e instanceof Error?e.message:`دریافت فایل پشتیبان ناموفق بود.`}finally{M.disabled=!1}}});let P=document.getElementById(`backup-restore-file`),F=document.getElementById(`backup-restore-btn`),I=document.getElementById(`backup-restore-error`),R=document.getElementById(`backup-restore-success`);P?.addEventListener(`change`,()=>{F&&(F.disabled=!P.files?.length),R&&(R.hidden=!0)}),F?.addEventListener(`click`,async()=>{if(!P||!I||!R)return;let e=P.files?.[0];if(e&&window.confirm(`با ادامه، تمام داده‌های فعلی سایت (درخواست‌ها، کارمندان، تنظیمات، محتوا و ...) با محتوای این فایل جایگزین می‌شود و این عمل غیرقابل‌بازگشت است. مطمئنید؟`)){I.hidden=!0,R.hidden=!0,F.disabled=!0;try{await ot(await e.text()),R.hidden=!1,P.value=``}catch(e){I.hidden=!1,I.textContent=e instanceof Error?e.message:`بازیابی پشتیبان ناموفق بود.`}finally{F.disabled=!P.files?.length}}});let z=document.getElementById(`drive-redirect-uri`);z&&(z.textContent=`${location.origin}/api/admin/backup/drive-oauth/callback`);let B=document.getElementById(`backup-drive-error`);document.getElementById(`backup-drive-save-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B){B.hidden=!0,t.disabled=!0;try{let e=c.googleDrive??{};c={...c,googleDrive:{...e,enabled:document.getElementById(`backup-drive-enabled`).checked,clientId:document.getElementById(`backup-drive-client-id`).value.trim(),clientSecret:document.getElementById(`backup-drive-client-secret`).value.trim(),folderId:document.getElementById(`backup-drive-folder`).value.trim()}},await V(`plugins`,c),a()}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`ذخیره تنظیمات ناموفق بود.`}finally{t.disabled=!1}}}),document.getElementById(`backup-drive-test-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B){B.hidden=!0,t.disabled=!0,t.textContent=`در حال ارسال...`;try{await st(),a()}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`ارسال آزمایشی ناموفق بود.`}finally{t.disabled=!1,t.textContent=`ارسال آزمایشی الان`}}}),document.getElementById(`backup-drive-connect-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B){B.hidden=!0,t.disabled=!0;try{let e=await ct();window.location.href=e}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`آماده‌سازی اتصال ناموفق بود.`,t.disabled=!1}}}),document.getElementById(`backup-drive-disconnect-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B&&window.confirm(`اتصال به گوگل درایو قطع شود؟ ارسال خودکار روزانه متوقف می‌شود.`)){B.hidden=!0,t.disabled=!0;try{await lt(),O(!1);let e=document.getElementById(`backup-drive-enabled`);e&&(e.checked=!1)}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`قطع اتصال ناموفق بود.`}finally{t.disabled=!1}}}),i&&x(i,`settings`)&&Oi()}var Ki=[{id:`gemini`,label:`Google Gemini`,defaultModel:`gemini-1.5-flash`,docUrl:`https://aistudio.google.com/app/apikey`,placeholder:`AIzaSy...`},{id:`openai`,label:`OpenAI (ChatGPT)`,defaultModel:`gpt-4o-mini`,docUrl:`https://platform.openai.com/api-keys`,placeholder:`sk-proj-...`},{id:`claude`,label:`Anthropic Claude`,defaultModel:`claude-3-5-haiku-20241022`,docUrl:`https://console.anthropic.com/settings/keys`,placeholder:`sk-ant-...`},{id:`deepseek`,label:`DeepSeek`,defaultModel:`deepseek-chat`,docUrl:`https://platform.deepseek.com/api_keys`,placeholder:`sk-...`},{id:`groq`,label:`Groq`,defaultModel:`llama-3.1-70b-versatile`,docUrl:`https://console.groq.com/keys`,placeholder:`gsk_...`}];function qi(e,t){let n=Ki.find(t=>t.id===e),r=Ki.findIndex(t=>t.id===e)+1||1;return t?.[e]??{enabled:!1,apiKey:``,model:n?.defaultModel??``,priority:r}}function Ji(e){return`
+    `}function D(){let e=c.googleDrive??{enabled:!1,clientId:``,clientSecret:``,folderId:``};document.getElementById(`backup-drive-enabled`).checked=!!e.enabled,document.getElementById(`backup-drive-client-id`).value=e.clientId??``,document.getElementById(`backup-drive-client-secret`).value=e.clientSecret??``,document.getElementById(`backup-drive-folder`).value=e.folderId??``,O(!!e.refreshToken)}function O(e){let t=document.getElementById(`drive-connection-status`),n=document.getElementById(`backup-drive-disconnect-btn`);t&&(t.innerHTML=e?`<span class="article-status-badge article-status-published">متصل به گوگل درایو</span>`:`<span class="article-status-badge">هنوز متصل نشده</span>`),n&&(n.hidden=!e)}function ee(e,t){let n=document.getElementById(`theme-${e}`),r=document.getElementById(`theme-${e}-picker`);n&&(n.value=t),r&&/^#[0-9a-fA-F]{6}$/.test(t)&&(r.value=t)}function k(){let e=s.theme??{};Bi.forEach(t=>ee(t.key,e[t.key]??Vi[t.key]))}document.querySelectorAll(`[data-theme-picker]`).forEach(e=>{e.addEventListener(`input`,()=>{let t=e.dataset.themePicker;ee(t,e.value)})}),document.getElementById(`theme-reset-btn`)?.addEventListener(`click`,()=>{Bi.forEach(e=>ee(e.key,Vi[e.key]))}),document.querySelectorAll(`[data-save-setting="theme"]`).forEach(e=>{e.addEventListener(`click`,async()=>{try{await Q(e,async()=>{let e={};Bi.forEach(t=>{let n=document.getElementById(`theme-${t.key}`).value.trim();e[t.key]=/^#[0-9a-fA-F]{6}$/.test(n)?n:Vi[t.key]}),e.quickActionsStyle=(s.theme??{}).quickActionsStyle===`fixed`?`fixed`:`floating`,await V(`theme`,e),s.theme=e}),a()}catch(e){o(e)}})}),Te().then(e=>{s=e,d(),v(),k(),S(),T()}).catch(o),i&&x(i,`plugins`)&&tt().then(e=>{c=e,D()}).catch(o),i&&x(i,`settings`)&&Me().then(e=>E(e)).catch(o);let A=document.getElementById(`license-key-input`),j=document.getElementById(`license-activate-btn`),te=document.getElementById(`license-activate-error`);j?.addEventListener(`click`,async()=>{if(!A||!te)return;let e=A.value.trim();if(te.hidden=!0,!e){te.hidden=!1,te.textContent=`کد لایسنس را وارد کنید.`;return}j.disabled=!0;try{let t=await Ne(e);A.value=``,E(t)}catch(e){te.hidden=!1,te.textContent=e instanceof Error?e.message:`فعال‌سازی لایسنس ناموفق بود.`}finally{j.disabled=!1}});let M=document.getElementById(`backup-download-btn`),N=document.getElementById(`backup-download-error`);M?.addEventListener(`click`,async()=>{if(N){N.hidden=!0,M.disabled=!0;try{await at()}catch(e){N.hidden=!1,N.textContent=e instanceof Error?e.message:`دریافت فایل پشتیبان ناموفق بود.`}finally{M.disabled=!1}}});let P=document.getElementById(`backup-restore-file`),F=document.getElementById(`backup-restore-btn`),I=document.getElementById(`backup-restore-error`),R=document.getElementById(`backup-restore-success`);P?.addEventListener(`change`,()=>{F&&(F.disabled=!P.files?.length),R&&(R.hidden=!0)}),F?.addEventListener(`click`,async()=>{if(!P||!I||!R)return;let e=P.files?.[0];if(e&&window.confirm(`با ادامه، تمام داده‌های فعلی سایت (درخواست‌ها، کارمندان، تنظیمات، محتوا و ...) با محتوای این فایل جایگزین می‌شود و این عمل غیرقابل‌بازگشت است. مطمئنید؟`)){I.hidden=!0,R.hidden=!0,F.disabled=!0;try{await ot(await e.text()),R.hidden=!1,P.value=``}catch(e){I.hidden=!1,I.textContent=e instanceof Error?e.message:`بازیابی پشتیبان ناموفق بود.`}finally{F.disabled=!P.files?.length}}});let z=document.getElementById(`drive-redirect-uri`);z&&(z.textContent=`${location.origin}/api/admin/backup/drive-oauth/callback`);let B=document.getElementById(`backup-drive-error`),ne=document.getElementById(`backup-drive-save-btn`);ne&&ne.addEventListener(`click`,async()=>{if(B){B.hidden=!0;try{await Q(ne,async()=>{let e=c.googleDrive??{};c={...c,googleDrive:{...e,enabled:document.getElementById(`backup-drive-enabled`).checked,clientId:document.getElementById(`backup-drive-client-id`).value.trim(),clientSecret:document.getElementById(`backup-drive-client-secret`).value.trim(),folderId:document.getElementById(`backup-drive-folder`).value.trim()}},await V(`plugins`,c)})}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`ذخیره تنظیمات ناموفق بود.`}}}),document.getElementById(`backup-drive-test-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B){B.hidden=!0,t.disabled=!0,t.textContent=`در حال ارسال...`;try{await st(),a()}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`ارسال آزمایشی ناموفق بود.`}finally{t.disabled=!1,t.textContent=`ارسال آزمایشی الان`}}}),document.getElementById(`backup-drive-connect-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B){B.hidden=!0,t.disabled=!0;try{let e=await ct();window.location.href=e}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`آماده‌سازی اتصال ناموفق بود.`,t.disabled=!1}}}),document.getElementById(`backup-drive-disconnect-btn`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(B&&window.confirm(`اتصال به گوگل درایو قطع شود؟ ارسال خودکار روزانه متوقف می‌شود.`)){B.hidden=!0,t.disabled=!0;try{await lt(),O(!1);let e=document.getElementById(`backup-drive-enabled`);e&&(e.checked=!1)}catch(e){B.hidden=!1,B.textContent=e instanceof Error?e.message:`قطع اتصال ناموفق بود.`}finally{t.disabled=!1}}}),i&&x(i,`settings`)&&Oi()}var Ki=[{id:`gemini`,label:`Google Gemini`,defaultModel:`gemini-1.5-flash`,docUrl:`https://aistudio.google.com/app/apikey`,placeholder:`AIzaSy...`},{id:`openai`,label:`OpenAI (ChatGPT)`,defaultModel:`gpt-4o-mini`,docUrl:`https://platform.openai.com/api-keys`,placeholder:`sk-proj-...`},{id:`claude`,label:`Anthropic Claude`,defaultModel:`claude-3-5-haiku-20241022`,docUrl:`https://console.anthropic.com/settings/keys`,placeholder:`sk-ant-...`},{id:`deepseek`,label:`DeepSeek`,defaultModel:`deepseek-chat`,docUrl:`https://platform.deepseek.com/api_keys`,placeholder:`sk-...`},{id:`groq`,label:`Groq`,defaultModel:`llama-3.1-70b-versatile`,docUrl:`https://console.groq.com/keys`,placeholder:`gsk_...`}];function qi(e,t){let n=Ki.find(t=>t.id===e),r=Ki.findIndex(t=>t.id===e)+1||1;return t?.[e]??{enabled:!1,apiKey:``,model:n?.defaultModel??``,priority:r}}function Ji(e){return`
     <div class="editor-sidebar-card ai-provider-card" data-ai-provider-card="${e.id}">
       <div class="plugin-card-head">
         <h3>${e.label}</h3>

@@ -435,73 +435,87 @@ export function renderSettingsView(): string {
     </div>
 
     <div class="settings-panel" data-settings-panel="backup-update" ${hiddenAttr('backup-update')}>
-      <div class="editor-sidebar-card">
-        <h3>پشتیبان‌گیری دستی</h3>
-        <p class="settings-panel-hint">یک فایل کامل از تمام محتوای سایت (درخواست‌ها، کارمندان، تنظیمات، مقالات، نظرات، چت‌ها، استوری‌ها و ...) دانلود یا بازیابی کنید.</p>
-        <div class="settings-panel-footer" style="justify-content:flex-start">
-          <button type="button" class="btn btn-secondary" id="backup-download-btn">
-            <span class="icon">${icons.download}</span>
-            دانلود بک‌آپ کامل
-          </button>
-        </div>
-        <p class="error-text" id="backup-download-error" hidden></p>
-
-        <hr style="margin:var(--space-5) 0; border:none; border-top:1px solid var(--border)" />
-
-        <label for="backup-restore-file" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:var(--space-2)">بازیابی از فایل بک‌آپ</label>
-        <input type="file" id="backup-restore-file" accept=".sql" />
-        <p class="settings-panel-hint" style="color:var(--danger)">
-          توجه: بازیابی، تمام داده‌های فعلی سایت را با محتوای فایل بک‌آپ جایگزین می‌کند و غیرقابل‌بازگشت است.
-        </p>
-        <div class="settings-panel-footer" style="justify-content:flex-start">
-          <button type="button" class="btn btn-secondary" id="backup-restore-btn" disabled>بازیابی از این فایل</button>
-        </div>
-        <p class="error-text" id="backup-restore-error" hidden></p>
-        <p class="settings-saved-note" id="backup-restore-success" hidden>بازیابی با موفقیت انجام شد.</p>
+      <div class="settings-subtabs">
+        <button type="button" class="settings-tab is-active" data-backup-subtab="manual">پشتیبان‌گیری دستی</button>
+        <button type="button" class="settings-tab" data-backup-subtab="drive">پشتیبان ابری (گوگل درایو)</button>
+        <button type="button" class="settings-tab" data-backup-subtab="update">به‌روزرسانی نرم‌افزار</button>
       </div>
 
-      <div class="editor-sidebar-card">
-        <h3>ارسال خودکار روزانه به گوگل درایو</h3>
-        <p class="settings-panel-hint">
-          با اتصال حساب گوگل خودتان، هر شب یک نسخه‌ی پشتیبان به‌صورت خودکار در Google Drive شما ذخیره می‌شود.
-        </p>
+      <div class="backup-subpanel" data-backup-subpanel="manual">
+        <div class="editor-sidebar-card">
+          <h3>پشتیبان‌گیری دستی</h3>
+          <p class="settings-panel-hint">یک فایل کامل از تمام محتوای سایت (درخواست‌ها، کارمندان، تنظیمات، مقالات، نظرات، چت‌ها، استوری‌ها و ...) دانلود یا بازیابی کنید.</p>
+          <div class="settings-panel-footer" style="justify-content:flex-start">
+            <button type="button" class="btn btn-secondary" id="backup-download-btn">
+              <span class="icon">${icons.download}</span>
+              دانلود بک‌آپ کامل
+            </button>
+          </div>
+          <p class="error-text" id="backup-download-error" hidden></p>
 
-        <div class="drive-connection-status" id="drive-connection-status"></div>
+          <hr style="margin:var(--space-5) 0; border:none; border-top:1px solid var(--border)" />
 
-        <details class="drive-oauth-setup">
-          <summary>راه‌اندازی اولیه (فقط یک‌بار لازم است)</summary>
-          <ol class="settings-panel-hint" style="padding-inline-start:1.2rem; margin:var(--space-2) 0">
-            <li>در <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console → Credentials</a> یک «OAuth client ID» از نوع Web application بسازید.</li>
-            <li>این آدرس را به‌عنوان «Authorized redirect URI» اضافه کنید: <code id="drive-redirect-uri" dir="ltr"></code></li>
-            <li>شناسه (Client ID) و کلید (Client Secret) را اینجا وارد و ذخیره کنید.</li>
-            <li>روی «اتصال به گوگل درایو» بزنید و با حساب گوگل خودتان وارد شوید.</li>
-          </ol>
-        </details>
-
-        <div class="form-field" style="margin-top:var(--space-3)">
-          <label for="backup-drive-client-id">Client ID</label>
-          <input type="text" id="backup-drive-client-id" dir="ltr" placeholder="xxxxx.apps.googleusercontent.com" />
-        </div>
-        <div class="form-field">
-          <label for="backup-drive-client-secret">Client Secret</label>
-          <input type="password" id="backup-drive-client-secret" dir="ltr" placeholder="GOCSPX-..." />
-        </div>
-        <div class="form-field">
-          <label for="backup-drive-folder">شناسه‌ی پوشه‌ی Google Drive (اختیاری)</label>
-          <input type="text" id="backup-drive-folder" dir="ltr" placeholder="1AbCdEfG..." />
-        </div>
-        <label class="settings-inline-toggle"><input type="checkbox" id="backup-drive-enabled" /> ارسال خودکار روزانه فعال باشد</label>
-
-        <p class="error-text" id="backup-drive-error" hidden></p>
-        <div class="settings-panel-footer">
-          <button type="button" class="btn btn-secondary" id="backup-drive-test-btn">ارسال آزمایشی الان</button>
-          <button type="button" class="btn btn-secondary" id="backup-drive-save-btn">ذخیره تنظیمات</button>
-          <button type="button" class="btn btn-primary" id="backup-drive-connect-btn">اتصال به گوگل درایو</button>
-          <button type="button" class="btn btn-ghost" id="backup-drive-disconnect-btn" hidden>قطع اتصال</button>
+          <label for="backup-restore-file" style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:var(--space-2)">بازیابی از فایل بک‌آپ</label>
+          <input type="file" id="backup-restore-file" accept=".sql" />
+          <p class="settings-panel-hint" style="color:var(--danger)">
+            توجه: بازیابی، تمام داده‌های فعلی سایت را با محتوای فایل بک‌آپ جایگزین می‌کند و غیرقابل‌بازگشت است.
+          </p>
+          <div class="settings-panel-footer" style="justify-content:flex-start">
+            <button type="button" class="btn btn-secondary" id="backup-restore-btn" disabled>بازیابی از این فایل</button>
+          </div>
+          <p class="error-text" id="backup-restore-error" hidden></p>
+          <p class="settings-saved-note" id="backup-restore-success" hidden>بازیابی با موفقیت انجام شد.</p>
         </div>
       </div>
 
-      ${renderUpdatePanel()}
+      <div class="backup-subpanel" data-backup-subpanel="drive" hidden>
+        <div class="editor-sidebar-card">
+          <div class="card-header-action">
+            <h3 style="margin:0;">ارسال خودکار روزانه به گوگل درایو</h3>
+            <button type="button" class="btn btn-primary btn-sm" id="backup-drive-save-btn">ذخیره تنظیمات</button>
+          </div>
+          <p class="settings-panel-hint">
+            با اتصال حساب گوگل خودتان، هر شب یک نسخه‌ی پشتیبان به‌صورت خودکار در Google Drive شما ذخیره می‌شود.
+          </p>
+
+          <div class="drive-connection-status" id="drive-connection-status"></div>
+
+          <details class="drive-oauth-setup">
+            <summary>راه‌اندازی اولیه (فقط یک‌بار لازم است)</summary>
+            <ol class="settings-panel-hint" style="padding-inline-start:1.2rem; margin:var(--space-2) 0">
+              <li>در <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console → Credentials</a> یک «OAuth client ID» از نوع Web application بسازید.</li>
+              <li>این آدرس را به‌عنوان «Authorized redirect URI» اضافه کنید: <code id="drive-redirect-uri" dir="ltr"></code></li>
+              <li>شناسه (Client ID) و کلید (Client Secret) را اینجا وارد و ذخیره کنید.</li>
+              <li>روی «اتصال به گوگل درایو» بزنید و با حساب گوگل خودتان وارد شوید.</li>
+            </ol>
+          </details>
+
+          <div class="form-field" style="margin-top:var(--space-3)">
+            <label for="backup-drive-client-id">Client ID</label>
+            <input type="text" id="backup-drive-client-id" dir="ltr" placeholder="xxxxx.apps.googleusercontent.com" />
+          </div>
+          <div class="form-field">
+            <label for="backup-drive-client-secret">Client Secret</label>
+            <input type="password" id="backup-drive-client-secret" dir="ltr" placeholder="GOCSPX-..." />
+          </div>
+          <div class="form-field">
+            <label for="backup-drive-folder">شناسه‌ی پوشه‌ی Google Drive (اختیاری)</label>
+            <input type="text" id="backup-drive-folder" dir="ltr" placeholder="1AbCdEfG..." />
+          </div>
+          <label class="settings-inline-toggle"><input type="checkbox" id="backup-drive-enabled" /> ارسال خودکار روزانه فعال باشد</label>
+
+          <p class="error-text" id="backup-drive-error" hidden></p>
+          <div class="settings-panel-footer">
+            <button type="button" class="btn btn-secondary" id="backup-drive-test-btn">ارسال آزمایشی الان</button>
+            <button type="button" class="btn btn-primary" id="backup-drive-connect-btn">اتصال به گوگل درایو</button>
+            <button type="button" class="btn btn-ghost" id="backup-drive-disconnect-btn" hidden>قطع اتصال</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="backup-subpanel" data-backup-subpanel="update" hidden>
+        ${renderUpdatePanel()}
+      </div>
     </div>
   `;
 }
@@ -546,6 +560,17 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
       tab.classList.add('is-active');
       document.querySelectorAll<HTMLElement>('[data-settings-panel]').forEach((panel) => {
         panel.hidden = panel.dataset.settingsPanel !== tab.dataset.settingsTab;
+      });
+    });
+  });
+
+  // ----- backup subtabs -----
+  document.querySelectorAll<HTMLButtonElement>('[data-backup-subtab]').forEach((subtab) => {
+    subtab.addEventListener('click', () => {
+      document.querySelectorAll('[data-backup-subtab]').forEach((t) => t.classList.remove('is-active'));
+      subtab.classList.add('is-active');
+      document.querySelectorAll<HTMLElement>('[data-backup-subpanel]').forEach((panel) => {
+        panel.hidden = panel.dataset.backupSubpanel !== subtab.dataset.backupSubtab;
       });
     });
   });
@@ -1253,32 +1278,32 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
   if (redirectUriEl) redirectUriEl.textContent = `${API_BASE_URL || location.origin}/api/admin/backup/drive-oauth/callback`;
 
   const backupDriveError = document.getElementById('backup-drive-error');
-  document.getElementById('backup-drive-save-btn')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    if (!backupDriveError) return;
-    backupDriveError.hidden = true;
-    btn.disabled = true;
-    try {
-      const existing = (plugins.googleDrive as GoogleDrivePluginConfig | undefined) ?? {};
-      plugins = {
-        ...plugins,
-        googleDrive: {
-          ...existing,
-          enabled: (document.getElementById('backup-drive-enabled') as HTMLInputElement).checked,
-          clientId: (document.getElementById('backup-drive-client-id') as HTMLInputElement).value.trim(),
-          clientSecret: (document.getElementById('backup-drive-client-secret') as HTMLInputElement).value.trim(),
-          folderId: (document.getElementById('backup-drive-folder') as HTMLInputElement).value.trim(),
-        },
-      };
-      await updateSetting('plugins', plugins);
-      showSaved();
-    } catch (err) {
-      backupDriveError.hidden = false;
-      backupDriveError.textContent = err instanceof Error ? err.message : 'ذخیره تنظیمات ناموفق بود.';
-    } finally {
-      btn.disabled = false;
-    }
-  });
+  const backupDriveSaveBtn = document.getElementById('backup-drive-save-btn') as HTMLButtonElement | null;
+  if (backupDriveSaveBtn) {
+    backupDriveSaveBtn.addEventListener('click', async () => {
+      if (!backupDriveError) return;
+      backupDriveError.hidden = true;
+      try {
+        await handleSaveButton(backupDriveSaveBtn, async () => {
+          const existing = (plugins.googleDrive as GoogleDrivePluginConfig | undefined) ?? {};
+          plugins = {
+            ...plugins,
+            googleDrive: {
+              ...existing,
+              enabled: (document.getElementById('backup-drive-enabled') as HTMLInputElement).checked,
+              clientId: (document.getElementById('backup-drive-client-id') as HTMLInputElement).value.trim(),
+              clientSecret: (document.getElementById('backup-drive-client-secret') as HTMLInputElement).value.trim(),
+              folderId: (document.getElementById('backup-drive-folder') as HTMLInputElement).value.trim(),
+            },
+          };
+          await updateSetting('plugins', plugins);
+        });
+      } catch (err) {
+        backupDriveError.hidden = false;
+        backupDriveError.textContent = err instanceof Error ? err.message : 'ذخیره تنظیمات ناموفق بود.';
+      }
+    });
+  }
 
   document.getElementById('backup-drive-test-btn')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;

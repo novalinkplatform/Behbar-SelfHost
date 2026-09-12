@@ -479,6 +479,16 @@
   gap: var(--space-4);
 }
 
+.backup-subpanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.backup-subpanel[hidden] {
+  display: none !important;
+}
+
 .settings-form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
