@@ -28,18 +28,16 @@ if command -v apt-get >/dev/null 2>&1; then
   apt-get install -y curl ca-certificates tar git
 fi
 
-# Ensure installation source files are present
+# Ensure installation source files are present in target directory
+mkdir -p "$INSTALL_DIR"
 if [ ! -f "$SCRIPT_DIR/docker-compose.yml" ] || [ ! -d "$SCRIPT_DIR/behbar-api" ]; then
-  echo "Downloading Behbar Self-Host package from GitHub..."
-  TMP_DL="/tmp/behbar-source"
-  rm -rf "$TMP_DL"
-  mkdir -p "$TMP_DL"
-  curl -fsSL "https://github.com/novalinkplatform/Behbar-SelfHost/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMP_DL" --strip-components=1
-  SCRIPT_DIR="$TMP_DL"
+  echo "Downloading Behbar Self-Host files into $INSTALL_DIR..."
+  curl -fsSL "https://github.com/novalinkplatform/Behbar-SelfHost/archive/refs/heads/main.tar.gz" | tar -xz -C "$INSTALL_DIR" --strip-components=1
+  SCRIPT_DIR="$INSTALL_DIR"
 fi
 
 for req_file in "docker-compose.yml" "Caddyfile" "behbar.sh"; do
-  if [ ! -f "$SCRIPT_DIR/$req_file" ]; then
+  if [ ! -f "$SCRIPT_DIR/$req_file" ] && [ ! -f "$INSTALL_DIR/$req_file" ]; then
     echo "Error: Required file $req_file not found."
     exit 1
   fi
@@ -102,27 +100,28 @@ if [ -n "$SERVER_IP" ]; then
   fi
 fi
 
-# Copy configuration files
-mkdir -p "$INSTALL_DIR"
-cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml"
-cp "$SCRIPT_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile"
+# Copy configuration files if running from outside /opt/behbar
+if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
+  echo "Placing files into dedicated folder $INSTALL_DIR (away from root)..."
+  cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml"
+  cp "$SCRIPT_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile"
 
-# Copy source containers if present in package
-if [ -d "$SCRIPT_DIR/behbar-api" ]; then
-  rm -rf "$INSTALL_DIR/behbar-api"
-  cp -r "$SCRIPT_DIR/behbar-api" "$INSTALL_DIR/"
-fi
-if [ -d "$SCRIPT_DIR/behbar-site" ]; then
-  rm -rf "$INSTALL_DIR/behbar-site"
-  cp -r "$SCRIPT_DIR/behbar-site" "$INSTALL_DIR/"
-fi
-if [ -d "$SCRIPT_DIR/behbar-admin" ]; then
-  rm -rf "$INSTALL_DIR/behbar-admin"
-  cp -r "$SCRIPT_DIR/behbar-admin" "$INSTALL_DIR/"
+  if [ -d "$SCRIPT_DIR/behbar-api" ]; then
+    rm -rf "$INSTALL_DIR/behbar-api"
+    cp -r "$SCRIPT_DIR/behbar-api" "$INSTALL_DIR/"
+  fi
+  if [ -d "$SCRIPT_DIR/behbar-site" ]; then
+    rm -rf "$INSTALL_DIR/behbar-site"
+    cp -r "$SCRIPT_DIR/behbar-site" "$INSTALL_DIR/"
+  fi
+  if [ -d "$SCRIPT_DIR/behbar-admin" ]; then
+    rm -rf "$INSTALL_DIR/behbar-admin"
+    cp -r "$SCRIPT_DIR/behbar-admin" "$INSTALL_DIR/"
+  fi
 fi
 
 # Install behbar management CLI
-cp "$SCRIPT_DIR/behbar.sh" /usr/local/bin/behbar
+cp "$INSTALL_DIR/behbar.sh" /usr/local/bin/behbar
 chmod +x /usr/local/bin/behbar
 ln -sf /usr/local/bin/behbar /usr/local/bin/beh-manager 2>/dev/null || true
 
@@ -170,15 +169,12 @@ if [ -n "$CREDS" ]; then
   chmod 600 "$INSTALL_DIR/admin-credentials.txt"
 fi
 
-if [ -d "/tmp/behbar-source" ]; then
-  rm -rf "/tmp/behbar-source"
-fi
-
 echo ""
 echo "================================================================"
 echo "           Behbar installation completed successfully!          "
 echo "================================================================"
 echo ""
+echo "   Dedicated Folder : $INSTALL_DIR (all files kept here, away from root)"
 echo "   Customer Website : https://$SITE_DOMAIN"
 echo "   Management Panel : https://$SITE_DOMAIN/management"
 echo ""
