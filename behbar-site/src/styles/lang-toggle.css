@@ -1,0 +1,40 @@
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--surface-alt);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.lang-toggle span {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  color: var(--muted);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.lang-toggle span.is-active {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.lang-toggle-floating {
+  display: none;
+  position: fixed;
+  top: 14px;
+  inset-inline-start: 16px;
+  z-index: 150;
+  box-shadow: var(--shadow-lg);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .lang-toggle-floating {
+    display: inline-flex;
+  }
+}

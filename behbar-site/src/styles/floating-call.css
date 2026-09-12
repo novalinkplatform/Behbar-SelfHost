@@ -1,0 +1,252 @@
+.header-quick-actions {
+  position: fixed;
+  top: 14px;
+  inset-inline-end: 20px;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* حالت «فیکس»: دکمه‌ها بخشی ثابت از بالای صفحه‌اند و با اسکرول همراه صفحه جابه‌جا می‌شوند،
+   نه اینکه مثل حالت پیش‌فرض «شناور» همیشه روی صفحه بمانند. فقط روی دسکتاپ معنا دارد — موبایل
+   چیدمان مستقل خودش (نوار پایین) را دارد و تحت تأثیر این تنظیم قرار نمی‌گیرد. */
+.quick-actions-fixed .header-quick-actions {
+  position: absolute;
+}
+
+@media (max-width: 768px) {
+  .header-quick-actions {
+    /* روی موبایل هر دکمه دوباره جای مستقل خودش را می‌گیرد (تماس بالای نوار پایین، چت داخل نوار). */
+    display: contents;
+  }
+}
+
+/* روی دسکتاپ، هدر شناور یک قرص وسط‌چین با عرض متغیر است (بسته به زبان، طول نام هر خریدار،
+   تعداد آیتم‌های منو...) و آیکن‌های تماس/چت هم مستقل از آن در گوشه‌ی صفحه ثابت شده‌اند — یعنی
+   همیشه یک عرض ویوپورت (یا حتی یک breakpoint دیگر مثل شماره‌ی تلفن که از ۱۳۲۰px به بعد
+   دکمه‌ی تماس را عریض‌تر می‌کند) پیدا می‌شود که این دو روی هم بیفتند. به‌جای شکار تک‌تک این
+   بازه‌ها، برای هر عرض دسکتاپ/تبلتی از کنار هدر بیرون آورده می‌شوند تا اصلاً هیچ‌وقت با آن
+   رقابتی روی یک باند افقی نداشته باشند. */
+@media (min-width: 769px) {
+  /* دکمه‌ی چت بالا، دکمه‌ی تماس زیرش — هم‌راستا با لبه‌ی بیرونی (راست در LTR، چپ در RTL). */
+  .header-quick-actions {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+
+  /* حالت پیش‌فرض «شناور» (position:fixed): با اسکرول هم جابه‌جا نمی‌شود، پس تداخل با هدر
+     همیشگی است — همیشه به گوشه‌ی پایین-راست صفحه منتقل می‌شود، دور از هدر. */
+  html:not(.quick-actions-fixed) .header-quick-actions {
+    top: auto;
+    bottom: 20px;
+  }
+
+  /* حالت «فیکس» (position:absolute): با اسکرول از زیر هدر رد می‌شود و دیگر تداخلی ندارد؛
+     فقط در همان لحظه‌ی اول (اسکرول صفر) با هدر تداخل دارد، پس تا اولین اسکرول مخفی می‌ماند. */
+  html.quick-actions-fixed .header-quick-actions {
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+  }
+
+  html.quick-actions-fixed body.page-scrolled .header-quick-actions {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+.floating-call {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background-color: var(--call-green);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.floating-call:hover {
+  background-color: var(--call-green-dark);
+  transform: translateY(-2px);
+}
+
+/* هم‌راستا با دکمه چت: کنار هدر، روی صفحه‌های باریک‌تر جمع‌وجور و فقط از یک عرض معین به بعد با شماره کامل. */
+.floating-call-number {
+  display: none;
+}
+
+@media (min-width: 1320px) {
+  .floating-call {
+    width: auto;
+    height: auto;
+    padding: 0.7rem 1.1rem 0.7rem 0.7rem;
+    justify-content: flex-start;
+  }
+
+  .floating-call-number {
+    display: inline;
+  }
+}
+
+.floating-call-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.floating-call-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  animation: floating-call-ping 2.2s ease-out infinite;
+}
+
+.floating-call-wave-delay {
+  animation-delay: 1.1s;
+}
+
+@keyframes floating-call-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.floating-call .icon {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.floating-call-number {
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-call-wave {
+    animation: none;
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .floating-call {
+    position: fixed;
+    inset-inline-end: 20px;
+    bottom: 90px;
+    z-index: 150;
+    width: auto;
+    height: auto;
+    padding: 0.7rem 1.1rem 0.7rem 0.7rem;
+    justify-content: flex-start;
+    transition: background-color var(--transition-fast);
+  }
+
+  .floating-call-number {
+    display: inline;
+  }
+}
+
+/* دکمه‌ی شناور واتس‌اپ — دقیقاً همان الگوی .floating-call (موج، ابعاد، حالت موبایل) فقط بدون متن؛
+   چون مقصدش لینک واتس‌اپ است نه یک شماره‌ی قابل‌نمایش، همیشه فقط آیکون است، در هیچ عرضی بزرگ نمی‌شود. */
+.floating-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  min-height: 48px;
+  padding: 0.65rem 1.1rem 0.65rem 0.8rem;
+  background-color: #25d366;
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.floating-whatsapp:hover {
+  background-color: #1ebc59;
+  transform: translateY(-2px);
+}
+
+.floating-whatsapp-label {
+  display: inline;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.floating-whatsapp-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.floating-whatsapp-wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  animation: floating-call-ping 2.2s ease-out infinite;
+}
+
+.floating-whatsapp-wave-delay {
+  animation-delay: 1.1s;
+}
+
+.floating-whatsapp .icon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-whatsapp-wave {
+    animation: none;
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .floating-whatsapp {
+    position: fixed;
+    inset-inline-end: 20px;
+    bottom: 150px;
+    z-index: 150;
+    width: auto;
+    height: auto;
+    min-height: 44px;
+    padding: 0.6rem 1rem 0.6rem 0.7rem;
+    justify-content: flex-start;
+  }
+}

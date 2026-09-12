@@ -1,0 +1,278 @@
+import type { Permission } from '../types.ts';
+
+// یک لیست خالص از تعریف ابزارها — بدون هیچ وابستگی به index.ts (تا از circular import جلوگیری شود).
+// اجرای واقعی هر ابزار (فراخوانی همان handler موجود) و متن تأییدیه در index.ts کنار بقیه‌ی handlerها نوشته
+// شده، چون فقط همان‌جا به توابع خصوصی و DB دسترسی هست.
+export interface AiToolDef {
+  name: string;
+  permission: Permission;
+  readOnly: boolean;
+  description: string;
+  parameters: Record<string, unknown>;
+}
+
+export const AI_TOOLS: AiToolDef[] = [
+  {
+    name: 'list_articles',
+    permission: 'content',
+    readOnly: true,
+    description: 'فهرست همه‌ی مقاله‌های مجله (شناسه، عنوان، وضعیت، عنوان و توضیحات سئو) را برمی‌گرداند.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'update_article_seo',
+    permission: 'content',
+    readOnly: false,
+    description: 'عنوان و/یا توضیحات سئوی یک مقاله را تغییر می‌دهد.',
+    parameters: {
+      type: 'object',
+      properties: {
+        articleId: { type: 'number', description: 'شناسه‌ی مقاله' },
+        metaTitle: { type: 'string', description: 'عنوان سئو (اختیاری)' },
+        metaDescription: { type: 'string', description: 'توضیحات سئو (اختیاری)' },
+      },
+      required: ['articleId'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'set_article_status',
+    permission: 'content',
+    readOnly: false,
+    description: 'یک مقاله را منتشر یا از حالت انتشار خارج می‌کند.',
+    parameters: {
+      type: 'object',
+      properties: {
+        articleId: { type: 'number', description: 'شناسه‌ی مقاله' },
+        status: { type: 'string', enum: ['published', 'draft'] },
+      },
+      required: ['articleId', 'status'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'create_article',
+    permission: 'content',
+    readOnly: false,
+    description: 'یک مقاله‌ی کاملاً جدید برای مجله می‌نویسد و به‌صورت پیش‌نویس ذخیره می‌کند (بعداً باید جدا منتشر شود).',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'عنوان فارسی' },
+        titleEn: { type: 'string', description: 'عنوان انگلیسی' },
+        excerpt: { type: 'string', description: 'خلاصه‌ی فارسی کوتاه' },
+        excerptEn: { type: 'string', description: 'خلاصه‌ی انگلیسی کوتاه' },
+        category: { type: 'string', description: 'دسته‌بندی فارسی' },
+        categoryEn: { type: 'string', description: 'دسته‌بندی انگلیسی' },
+        content: {
+          type: 'array',
+          description: 'بلوک‌های محتوای مقاله به ترتیب نمایش',
+          items: {
+            type: 'object',
+            properties: {
+              type: { type: 'string', enum: ['heading', 'paragraph', 'list'] },
+              text: { type: 'string', description: 'برای heading/paragraph' },
+              textEn: { type: 'string' },
+              items: { type: 'array', items: { type: 'string' }, description: 'برای list' },
+              itemsEn: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['type'],
+          },
+        },
+        metaTitle: { type: 'string' },
+        metaDescription: { type: 'string' },
+      },
+      required: ['title', 'titleEn', 'excerpt', 'excerptEn', 'category', 'categoryEn', 'content'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'update_article_content',
+    permission: 'content',
+    readOnly: false,
+    description: 'متن/عنوان/خلاصه/دسته‌بندی یک مقاله‌ی موجود را ویرایش می‌کند (برخلاف update_article_seo که فقط سئو را تغییر می‌دهد).',
+    parameters: {
+      type: 'object',
+      properties: {
+        articleId: { type: 'number' },
+        title: { type: 'string' },
+        titleEn: { type: 'string' },
+        excerpt: { type: 'string' },
+        excerptEn: { type: 'string' },
+        category: { type: 'string' },
+        categoryEn: { type: 'string' },
+        content: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              type: { type: 'string', enum: ['heading', 'paragraph', 'list'] },
+              text: { type: 'string' },
+              textEn: { type: 'string' },
+              items: { type: 'array', items: { type: 'string' } },
+              itemsEn: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['type'],
+          },
+        },
+      },
+      required: ['articleId'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'list_testimonials',
+    permission: 'content',
+    readOnly: true,
+    description: 'فهرست نظرات مشتریان (شناسه، نام، متن، امتیاز، وضعیت) را برمی‌گرداند.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'set_testimonial_status',
+    permission: 'content',
+    readOnly: false,
+    description: 'یک نظر مشتری را منتشر یا از حالت انتشار خارج می‌کند.',
+    parameters: {
+      type: 'object',
+      properties: {
+        testimonialId: { type: 'number' },
+        status: { type: 'string', enum: ['published', 'draft'] },
+      },
+      required: ['testimonialId', 'status'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'list_job_applications',
+    permission: 'recruitment',
+    readOnly: true,
+    description: 'فهرست درخواست‌های همکاری (شناسه، نام، موقعیت شغلی، وضعیت) را برمی‌گرداند.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'update_job_application_status',
+    permission: 'recruitment',
+    readOnly: false,
+    description: 'وضعیت یک درخواست همکاری را تغییر می‌دهد.',
+    parameters: {
+      type: 'object',
+      properties: {
+        applicationId: { type: 'number' },
+        status: { type: 'string', enum: ['new', 'reviewed', 'contacted', 'hired', 'rejected'] },
+      },
+      required: ['applicationId', 'status'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'get_dashboard_stats',
+    permission: 'dashboard',
+    readOnly: true,
+    description: 'آمار کلی درخواست‌ها (تعداد کل، وضعیت‌ها، درآمد، روند روزانه، شهرهای پرتقاضا) را برمی‌گرداند.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'get_seo_settings',
+    permission: 'seo',
+    readOnly: true,
+    description: 'تنظیمات فعلی سئو (کد Search Console، شناسه آنالیتیکس، تصویر پیش‌فرض اشتراک‌گذاری) را برمی‌گرداند.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'get_legal_page',
+    permission: 'settings',
+    readOnly: true,
+    description: 'محتوای فعلی یک صفحه‌ی قانونی (مثلاً قوانین و شرایط یا حریم خصوصی) را برمی‌گرداند.',
+    parameters: {
+      type: 'object',
+      properties: { slug: { type: 'string', description: "مثلاً 'terms' یا 'privacy'" } },
+      required: ['slug'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'update_legal_page',
+    permission: 'settings',
+    readOnly: false,
+    description: 'یک صفحه‌ی قانونی را به‌روزرسانی می‌کند (فقط فیلدهای داده‌شده تغییر می‌کنند؛ sections در صورت ارسال کاملاً جایگزین می‌شود).',
+    parameters: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: "مثلاً 'terms' یا 'privacy'" },
+        title: { type: 'string' },
+        titleEn: { type: 'string' },
+        intro: { type: 'string' },
+        introEn: { type: 'string' },
+        sections: {
+          type: 'array',
+          description: 'در صورت ارسال، کل فهرست بخش‌های صفحه را جایگزین می‌کند',
+          items: {
+            type: 'object',
+            properties: {
+              heading: { type: 'string' },
+              headingEn: { type: 'string' },
+              paragraphs: { type: 'array', items: { type: 'string' } },
+              paragraphsEn: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['heading', 'headingEn', 'paragraphs', 'paragraphsEn'],
+          },
+        },
+      },
+      required: ['slug'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'list_open_chats',
+    permission: 'chat',
+    readOnly: true,
+    description: 'گفتگوهای پشتیبانی اخیر را فهرست می‌کند (نام مشتری، آخرین پیام، تعداد پیام خوانده‌نشده).',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'get_chat_messages',
+    permission: 'chat',
+    readOnly: true,
+    description: 'تاریخچه‌ی پیام‌های یک گفتگوی مشخص را برمی‌گرداند.',
+    parameters: {
+      type: 'object',
+      properties: { conversationId: { type: 'number' } },
+      required: ['conversationId'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'reply_to_chat',
+    permission: 'chat',
+    readOnly: false,
+    description: 'یک پیام از طرف پشتیبانی در یک گفتگوی مشخص ارسال می‌کند.',
+    parameters: {
+      type: 'object',
+      properties: {
+        conversationId: { type: 'number' },
+        message: { type: 'string' },
+      },
+      required: ['conversationId', 'message'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'update_seo_settings',
+    permission: 'seo',
+    readOnly: false,
+    description: 'تنظیمات سئو را به‌روزرسانی می‌کند (فقط فیلدهای داده‌شده تغییر می‌کنند).',
+    parameters: {
+      type: 'object',
+      properties: {
+        googleSiteVerification: { type: 'string' },
+        googleAnalyticsId: { type: 'string' },
+        defaultOgImage: { type: 'string' },
+      },
+      additionalProperties: false,
+    },
+  },
+];
+
+export function toolsForPermissions(staffPermissions: Permission[]): AiToolDef[] {
+  return AI_TOOLS.filter((t) => staffPermissions.includes(t.permission));
+}

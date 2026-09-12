@@ -19,11 +19,23 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-# --- Check required files ---
+# --- Ensure installation source files are present ---
+if [ ! -f "$SCRIPT_DIR/docker-compose.yml" ] || [ ! -d "$SCRIPT_DIR/behbar-api" ]; then
+  echo "Downloading Behbar Self-Host package from GitHub..."
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get update -y
+    apt-get install -y curl ca-certificates tar
+  fi
+  TMP_DL="/tmp/behbar-source"
+  rm -rf "$TMP_DL"
+  mkdir -p "$TMP_DL"
+  curl -fsSL "https://github.com/novalinkplatform/Behbar-SelfHost/archive/refs/heads/main.tar.gz" | tar -xz -C "$TMP_DL" --strip-components=1
+  SCRIPT_DIR="$TMP_DL"
+fi
+
 for req_file in "docker-compose.yml" "Caddyfile" "beh-manager.sh"; do
   if [ ! -f "$SCRIPT_DIR/$req_file" ]; then
-    echo "Error: Required file $req_file not found in current directory."
-    echo "Please ensure you have extracted all files from the package."
+    echo "Error: Required file $req_file not found."
     exit 1
   fi
 done
@@ -46,9 +58,12 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-# --- Prompt for domain ---
-echo ""
-read -rp "Enter your site domain or subdomain (e.g. behbar.example.com): " SITE_DOMAIN < /dev/tty
+# --- Prompt for domain (or accept as argument) ---
+SITE_DOMAIN="${1:-}"
+if [ -z "$SITE_DOMAIN" ]; then
+  echo ""
+  read -rp "Enter your site domain or subdomain (e.g. behbar.example.com): " SITE_DOMAIN < /dev/tty
+fi
 
 SITE_DOMAIN=$(echo "$SITE_DOMAIN" | sed -E 's#https?://##; s#/$##')
 
@@ -164,3 +179,8 @@ else
   echo " To view initial admin credentials, run:"
   echo "   docker compose -f $INSTALL_DIR/docker-compose.yml exec behbar-api cat /data/admin-credentials.txt"
 fi
+
+if [ -d "/tmp/behbar-source" ]; then
+  rm -rf "/tmp/behbar-source"
+fi
+

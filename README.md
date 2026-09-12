@@ -16,21 +16,20 @@ This package contains everything required to deploy and run **Behbar** on your L
 
 ## 2. Quick Installation (One Command)
 
-1. Upload the archive (`Behbar-Server-Package.zip` or `Behbar-Server-Package.tar.gz`) to your server.
-2. Connect via SSH and run:
+Connect to your server via SSH and run this single command:
 
 ```bash
-mkdir -p /opt/behbar-install
-cd /opt/behbar-install
-tar -xzf ~/Behbar-Server-Package.tar.gz --strip-components=1
-# OR if using zip:
-# apt update && apt install -y unzip && unzip -o ~/Behbar-Server-Package.zip
-
-sudo bash install.sh
+curl -fsSL https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/quick-install.sh | sudo bash
 ```
 
-3. Enter your domain name when prompted (e.g. `yourdomain.com`).
-4. Installation completes automatically with Docker setup, container builds, database creation, and automatic HTTPS certificate provisioning.
+Alternatively, you can clone and run via Git:
+
+```bash
+git clone https://github.com/novalinkplatform/Behbar-SelfHost.git /opt/behbar && cd /opt/behbar && sudo bash install.sh
+```
+
+During installation, you only need to enter your domain name when prompted (e.g. `yourdomain.com`).
+Docker setup, container builds, database creation, and automatic HTTPS certificate provisioning will all complete automatically.
 
 ---
 
