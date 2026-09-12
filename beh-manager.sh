@@ -8,12 +8,12 @@ INSTALL_DIR="/opt/behbar"
 COMPOSE="docker compose -f $INSTALL_DIR/docker-compose.yml"
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "خطا: لطفاً با دسترسی روت اجرا کنید (مثال: sudo beh-manager)"
+  echo "Please run as root (e.g.: sudo beh-manager)"
   exit 1
 fi
 
 if [ ! -f "$INSTALL_DIR/docker-compose.yml" ]; then
-  echo "خطا: به نظر می‌رسد بهبار در مسیر $INSTALL_DIR نصب نشده است."
+  echo "Behbar does not appear to be installed at $INSTALL_DIR."
   exit 1
 fi
 
@@ -35,69 +35,69 @@ show_status() {
   echo ""
   $COMPOSE ps
   echo ""
-  echo "سایت مشتریان : https://${SITE_DOMAIN:-تنظیم نشده}"
-  echo "پنل مدیریت   : https://${SITE_DOMAIN:-تنظیم نشده}/management"
+  echo "Customer site : https://${SITE_DOMAIN:-not set}"
+  echo "Admin panel   : https://${SITE_DOMAIN:-not set}/management"
 }
 
 do_update() {
   echo ""
-  echo "این عملیات کانتینرها را با آخرین تغییرات بازسازی/به‌روزرسانی و مجدداً راه‌اندازی می‌کند."
-  echo "(داده‌های دیتابیس در ولوم ماندگار داکر محفوظ و دست‌نخورده باقی می‌ماند)."
-  read -rp "آیا ادامه می‌دهید؟ [y/N] " CONFIRM < /dev/tty
+  echo "This rebuilds/updates containers and restarts services."
+  echo "(Database data is safely preserved in the persistent Docker volume)."
+  read -rp "Do you want to proceed? [y/N] " CONFIRM < /dev/tty
   if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
-    echo "عملیات لغو شد."
+    echo "Cancelled."
     return
   fi
   if [ -d "$INSTALL_DIR/behbar-api" ]; then
-    echo "در حال بازسازی کانتینرها از سورس کد..."
+    echo "Rebuilding containers from source..."
     $COMPOSE build
   else
-    echo "در حال دریافت آخرین ایمیج‌ها..."
+    echo "Pulling latest images..."
     if ! $COMPOSE pull; then
-      echo "دریافت ایمیج‌ها ناموفق بود — اتصال اینترنت سرور را بررسی کنید."
+      echo "Failed to pull images - check server internet connection."
       return
     fi
   fi
   $COMPOSE up -d
   echo ""
-  echo "به‌روزرسانی با موفقیت انجام شد."
+  echo "Update completed successfully."
 }
 
 do_change_password() {
   echo ""
-  read -rsp "رمز عبور جدید برای حساب «admin» (حداقل ۶ کاراکتر): " NEW_PASS < /dev/tty
+  read -rsp "New password for \"admin\" account (min 6 chars): " NEW_PASS < /dev/tty
   echo
   if [ -z "$NEW_PASS" ] || [ "${#NEW_PASS}" -lt 6 ]; then
-    echo "رمز عبور باید حداقل ۶ کاراکتر باشد — تغییری اعمال نشد."
+    echo "Password must be at least 6 characters - no changes made."
     return
   fi
   $COMPOSE exec -T behbar-api node dist-node/selfhost/reset-admin-password.js "$NEW_PASS"
-  echo "رمز عبور مدیر با موفقیت تغییر یافت."
+  echo "Admin password updated successfully."
 }
 
 do_change_domain() {
   load_env
   echo ""
-  echo "دامنه فعلی : ${SITE_DOMAIN:-تنظیم نشده}"
+  echo "Current domain : ${SITE_DOMAIN:-not set}"
   echo ""
-  read -rp "دامنه جدید (برای عدم تغییر خالی بگذارید): " NEW_SITE < /dev/tty
+  read -rp "New domain (press Enter to keep current): " NEW_SITE < /dev/tty
   NEW_SITE=${NEW_SITE:-$SITE_DOMAIN}
   NEW_SITE=$(echo "$NEW_SITE" | sed -E 's#https?://##; s#/$##')
 
   if [ -z "$NEW_SITE" ]; then
-    echo "وارد کردن دامنه الزامی است — تغییری اعمال نشد."
+    echo "Domain is required - no changes made."
     return
   fi
 
   SERVER_IP=$(curl -fsSL https://api.ipify.org || echo "")
   if [ -n "$SERVER_IP" ]; then
     echo ""
-    echo "در حال بررسی DNS..."
+    echo "Checking DNS..."
     RESOLVED=$(resolve_domain "$NEW_SITE" || echo "")
     if [ "$RESOLVED" = "$SERVER_IP" ]; then
-      echo "  [تایید]   $NEW_SITE -> $RESOLVED"
+      echo "  [OK]   $NEW_SITE -> $RESOLVED"
     else
-      echo "  [هشدار] $NEW_SITE -> ${RESOLVED:-هنوز ثبت نشده} (باید به $SERVER_IP اشاره کند)"
+      echo "  [WARN] $NEW_SITE -> ${RESOLVED:-not resolved yet} (should point to $SERVER_IP)"
     fi
   fi
 
@@ -106,31 +106,31 @@ SITE_DOMAIN=$NEW_SITE
 EOF
 
   echo ""
-  echo "در حال اعمال دامنه جدید..."
+  echo "Applying new domain..."
   $COMPOSE up -d
   echo ""
-  echo "انجام شد. گواهی امنیتی HTTPS خودکار پس از اتصال دامنه صادر می‌شود."
-  echo "  سایت مشتریان : https://$NEW_SITE"
-  echo "  پنل مدیریت   : https://$NEW_SITE/management"
+  echo "Done. HTTPS certificate will be issued automatically once DNS points here."
+  echo "  Customer site : https://$NEW_SITE"
+  echo "  Admin panel   : https://$NEW_SITE/management"
 }
 
 while true; do
   echo ""
   echo "================================================================"
-  echo "             ابزار مدیریت سرور بهبار (beh-manager)              "
+  echo "                 Behbar Server Manager (beh-manager)            "
   echo "================================================================"
-  echo " ۱) مشاهده وضعیت سرویس‌ها"
-  echo " ۲) به‌روزرسانی و راه‌اندازی مجدد"
-  echo " ۳) تغییر رمز عبور مدیر (admin)"
-  echo " ۴) تغییر دامنه سایت"
-  echo " ۵) خروج"
+  echo " 1) Show service status"
+  echo " 2) Update & rebuild containers"
+  echo " 3) Change admin password"
+  echo " 4) Change domain"
+  echo " 5) Exit"
   read -rp "> " CHOICE < /dev/tty
   case "$CHOICE" in
-    1|۱) show_status ;;
-    2|۲) do_update ;;
-    3|۳) do_change_password ;;
-    4|۴) do_change_domain ;;
-    5|۵) exit 0 ;;
-    *) echo "گزینه نامعتبر است." ;;
+    1) show_status ;;
+    2) do_update ;;
+    3) do_change_password ;;
+    4) do_change_domain ;;
+    5) exit 0 ;;
+    *) echo "Invalid choice." ;;
   esac
 done

@@ -1,83 +1,72 @@
-# راهنمای نصب و راه‌اندازی بسته سرور بهبار (نسخه ۱.۴.۱)
+# Behbar Server Self-Host Installation Guide (v1.4.1)
 
-این بسته شامل تمامی فایل‌های لازم برای نصب و راه‌اندازی کامل سامانه **بهبار** روی سرور اختصاصی یا سرور مجازی (VPS) شماست.
-
----
-
-## ۱. مشخصات و پیش‌نیازهای سرور
-
-- **سیستم‌عامل پیشنهادی:** اوبونتو (Ubuntu 22.04 یا 24.04 LTS) یا دبیان (Debian 12)
-- **سخت‌افزار حداقل:** ۱ هسته پردازنده، ۱ گیگابایت رم، ۱۰ گیگابایت دیسک (۲ گیگابایت رم برای سرعت بهینه پیشنهاد می‌شود)
-- **دسترسی روت (root):** اتصال از طریق SSH
-- **دامنه:** یک دامنه یا زیردامنه که رکورد `A` آن به آی‌پی سرور شما متصل شده باشد.
-  - *نکته کلادفلر:* اگر دامنه در کلادفلر است، ابر پروکسی را خاکستری (DNS only) بگذارید تا گواهی SSL اولیه بدون مشکل صادر شود.
+This package contains everything required to deploy and run **Behbar** on your Linux server or VPS.
 
 ---
 
-## ۲. مراحل نصب سریع با یک دستور
+## 1. Requirements
 
-۱. فایل فشرده بسته (`Behbar-Server-Package.zip`) را روی سرور خود آپلود کنید.
-۲. با اتصال SSH وارد سرور شده و دستورات زیر را اجرا نمایید:
+- **OS:** Ubuntu (22.04 or 24.04 LTS recommended) or Debian (11/12)
+- **Specs:** 1 CPU core, 1 GB RAM (2 GB recommended), 10 GB disk space
+- **Root access:** via SSH
+- **Domain:** A domain or subdomain with an `A` record pointing to this server's public IP.
+  - *Cloudflare Note:* Set proxy status to DNS Only (grey cloud) initially for SSL certificate issuance.
+
+---
+
+## 2. Quick Installation (One Command)
+
+1. Upload the archive (`Behbar-Server-Package.zip` or `Behbar-Server-Package.tar.gz`) to your server.
+2. Connect via SSH and run:
 
 ```bash
-# رفتن به پوشه مورد نظر و استخراج فایل‌ها
 mkdir -p /opt/behbar-install
 cd /opt/behbar-install
-unzip -o ~/Behbar-Server-Package.zip
+tar -xzf ~/Behbar-Server-Package.tar.gz --strip-components=1
+# OR if using zip:
+# apt update && apt install -y unzip && unzip -o ~/Behbar-Server-Package.zip
 
-# اجرای اسکریپت نصب خودکار
 sudo bash install.sh
 ```
 
-۳. اسکریپت فقط **یک سؤال** از شما می‌پرسد:
-   ```
-   دامنه یا زیردامنه سایت (مثال: mydomain.com): 
-   ```
-   نام دامنه خود را بدون `https://` وارد کرده و Enter بزنید.
-
-۴. تمام مراحل شامل نصب Docker، ساخت کانتینرها، صدور خودکار گواهی امنیتی HTTPS و ایجاد پایگاه داده به‌صورت ۱۰۰٪ خودکار انجام خواهد شد.
+3. Enter your domain name when prompted (e.g. `yourdomain.com`).
+4. Installation completes automatically with Docker setup, container builds, database creation, and automatic HTTPS certificate provisioning.
 
 ---
 
-## ۳. پس از پایان نصب
+## 3. Post-Installation
 
-در پایان نصب، آدرس‌ها و اطلاعات ورود اولیه مدیر به شما نمایش داده می‌شود:
-- **سایت مشتریان:** `https://yourdomain.com`
-- **پنل مدیریت:** `https://yourdomain.com/management`
-- **نام کاربری مدیر:** `admin`
-- **رمز عبور:** در خروجی نصب چاپ می‌شود (همچنین در فایل `/opt/behbar/admin-credentials.txt` ذخیره شده است).
+Once complete, your access URLs and credentials will be displayed:
+- **Customer Website:** `https://yourdomain.com`
+- **Management Panel:** `https://yourdomain.com/management`
+- **Default Username:** `admin`
+- **Default Password:** displayed at the end of installation (and stored in `/opt/behbar/admin-credentials.txt`).
 
 ---
 
-## ۴. ابزار مدیریت سرور (`beh-manager`)
+## 4. Server Management Tool (`beh-manager`)
 
-برای مدیریت آسان سرور در هر زمان، کافی است دستور زیر را در ترمینال سرور اجرا کنید:
+Manage your installation anytime by running:
 
 ```bash
 sudo beh-manager
 ```
 
-یک منوی فارسی باز می‌شود که امکانات زیر را در اختیارتان می‌گذارد:
-۱) مشاهده وضعیت لحظه‌ای کانتینرها و سرویس‌ها  
-۲) به‌روزرسانی و بازسازی کانتینرها  
-۳) تغییر آسان رمز عبور حساب مدیریت  
-۴) تغییر دامنه سایت  
+Options available:
+1) Show service status
+2) Update & rebuild containers
+3) Change admin password
+4) Change domain name
 
 ---
 
-## ۵. دستورات کاربردی داکر
+## 5. Useful Docker Commands
 
-همه دستورات از مسیر `/opt/behbar` قابل اجرا هستند:
+From `/opt/behbar`:
 
 ```bash
 cd /opt/behbar
-
-# مشاهده وضعیت سرویس‌ها
 docker compose ps
-
-# مشاهده لاگ بک‌اند و خطاها
 docker compose logs -f behbar-api
-
-# ری‌استارت سرویس‌ها
 docker compose restart
 ```
