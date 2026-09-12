@@ -17,11 +17,6 @@ if [ ! -f "$INSTALL_DIR/docker-compose.yml" ]; then
   exit 1
 fi
 
-resolve_domain() {
-  curl -fsSL "https://dns.google/resolve?name=$1&type=A" 2>/dev/null \
-    | grep -oE '"data": ?"[0-9.]+"' | grep -oE '[0-9.]+' | head -1
-}
-
 load_env() {
   SITE_DOMAIN=""
   if [ -f "$INSTALL_DIR/.env" ]; then
@@ -71,7 +66,7 @@ do_update() {
     rm -rf "$TMP_UP"
 
     echo "Rebuilding containers from updated source..."
-    $COMPOSE build
+    $COMPOSE build --progress=plain
     $COMPOSE up -d
     echo ""
     echo "[OK] Behbar updated successfully to the latest version!"
@@ -98,12 +93,10 @@ do_change_password() {
 
 show_info() {
   load_env
-  SERVER_IP=$(curl -fsSL https://api.ipify.org 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "Unknown")
   echo ""
   echo "================================================================"
   echo "                Behbar System Info & Credentials                "
   echo "================================================================"
-  echo " Server IP        : $SERVER_IP"
   echo " Domain           : ${SITE_DOMAIN:-not set}"
   echo " Customer Website : https://${SITE_DOMAIN:-not set}"
   echo " Management Panel : https://${SITE_DOMAIN:-not set}/management"
@@ -133,19 +126,6 @@ do_change_domain() {
   if [ -z "$NEW_SITE" ]; then
     echo "No domain entered. No changes made."
     return
-  fi
-
-  SERVER_IP=$(curl -fsSL https://api.ipify.org 2>/dev/null || "")
-  if [ -n "$SERVER_IP" ]; then
-    echo ""
-    echo "Checking DNS resolution for $NEW_SITE..."
-    RESOLVED=$(resolve_domain "$NEW_SITE" || echo "")
-    if [ "$RESOLVED" = "$SERVER_IP" ]; then
-      echo "  [OK] Domain points correctly to this server ($SERVER_IP)."
-    else
-      echo "  [WARNING] $NEW_SITE -> ${RESOLVED:-not resolved yet} (Server IP: $SERVER_IP)"
-      echo "  Make sure DNS A record points to $SERVER_IP (Cloudflare: DNS Only / grey cloud)."
-    fi
   fi
 
   cat > "$INSTALL_DIR/.env" <<EOF

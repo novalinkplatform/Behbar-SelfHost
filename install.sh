@@ -63,7 +63,7 @@ fi
 # ================================================================
 echo ""
 echo "[3/4] System Configuration"
-echo "All prerequisites installed successfully."
+echo "Prerequisites verified successfully."
 echo ""
 
 SITE_DOMAIN="${1:-}"
@@ -78,31 +78,14 @@ if [ -z "$SITE_DOMAIN" ]; then
   exit 1
 fi
 
-# Check DNS record
-resolve_domain() {
-  curl -fsSL "https://dns.google/resolve?name=$1&type=A" 2>/dev/null \
-    | grep -oE '"data": ?"[0-9.]+"' | grep -oE '[0-9.]+' | head -1
-}
-
-SERVER_IP=$(curl -fsSL https://api.ipify.org 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "")
-if [ -n "$SERVER_IP" ]; then
-  echo ""
-  echo "Checking DNS resolution for $SITE_DOMAIN..."
-  SITE_IP=$(resolve_domain "$SITE_DOMAIN" || echo "")
-
-  if [ "$SITE_IP" = "$SERVER_IP" ]; then
-    echo "  [OK] Domain A record correctly points to this server ($SERVER_IP)."
-  elif [ -n "$SITE_IP" ]; then
-    echo "  [WARNING] $SITE_DOMAIN resolves to $SITE_IP, but server IP is $SERVER_IP."
-    echo "  Please ensure DNS A record points to $SERVER_IP (Cloudflare: DNS Only / grey cloud)."
-  else
-    echo "  [NOTE] DNS record not resolved yet or still propagating."
-  fi
-fi
+echo ""
+echo "Configuring domain: $SITE_DOMAIN"
+echo "Note: Make sure your domain A-record points to this server's IP."
+echo "(If using Cloudflare, set proxy status to DNS Only / grey cloud)."
 
 # Copy configuration files if running from outside /opt/behbar
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
-  echo "Placing files into dedicated folder $INSTALL_DIR (away from root)..."
+  echo "Placing files into dedicated folder $INSTALL_DIR..."
   cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml"
   cp "$SCRIPT_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile"
 
@@ -135,23 +118,12 @@ cd "$INSTALL_DIR"
 # Step 4: Build & Launch Services
 # ================================================================
 echo ""
-echo "[4/4] Building and launching Behbar services..."
-if [ -d "$INSTALL_DIR/behbar-api" ] && [ -d "$INSTALL_DIR/behbar-site" ] && [ -d "$INSTALL_DIR/behbar-admin" ]; then
-  echo "Building container images from source..."
-  docker compose build
-  echo "Starting services..."
-  docker compose up -d
-else
-  echo "Pulling container images and starting services..."
-  if ! docker compose pull; then
-    echo "Attempting local container build..."
-    docker compose build || {
-      echo "Failed to pull or build container images."
-      exit 1
-    }
-  fi
-  docker compose up -d
-fi
+echo "[4/4] Starting Behbar services..."
+echo "Building lightweight container images..."
+docker compose build --progress=plain
+
+echo "Launching containers..."
+docker compose up -d
 
 # Wait for admin credentials generation
 echo ""
@@ -174,7 +146,7 @@ echo "================================================================"
 echo "           Behbar installation completed successfully!          "
 echo "================================================================"
 echo ""
-echo "   Dedicated Folder : $INSTALL_DIR (all files kept here, away from root)"
+echo "   Dedicated Folder : $INSTALL_DIR"
 echo "   Customer Website : https://$SITE_DOMAIN"
 echo "   Management Panel : https://$SITE_DOMAIN/management"
 echo ""
@@ -185,7 +157,7 @@ else
   echo " Admin username: admin"
 fi
 echo ""
-echo " Note: Automatic HTTPS SSL certificate may take 1-2 minutes to activate."
+echo " Note: Automatic HTTPS SSL certificate activates in 1-2 minutes."
 echo " You can manage your installation anytime by running: sudo behbar"
 echo "================================================================"
 echo ""
