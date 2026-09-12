@@ -366,9 +366,9 @@ function renderText(section: HomepageSection): string {
 // ===== dispatch =====
 
 const LAYOUT_DEFAULTS: Record<string, [string, string]> = {
-  steps: ['چطور کار می‌کند؟', 'How it works'],
-  accordion: ['پرسش‌های رایج', 'Frequently asked questions'],
-  grid: ['چرا بهبار؟', 'Why us?'],
+  steps: ['', ''],
+  accordion: ['', ''],
+  grid: ['', ''],
   slider: ['', ''],
   quote: ['', ''],
   testimonials: ['نظرات مشتریان ما', 'What our customers say'],
