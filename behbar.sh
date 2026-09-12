@@ -175,6 +175,16 @@ do_uninstall() {
   exit 0
 }
 
+if [ -n "${1:-}" ]; then
+  case "$1" in
+    1|update) do_update; exit 0 ;;
+    2|password) do_change_password; exit 0 ;;
+    3|info) show_info; exit 0 ;;
+    4|domain) do_change_domain; exit 0 ;;
+    5|uninstall) do_uninstall; exit 0 ;;
+  esac
+fi
+
 while true; do
   CURRENT_VER="1.1.0"
   if [ -f "$INSTALL_DIR/VERSION" ]; then
