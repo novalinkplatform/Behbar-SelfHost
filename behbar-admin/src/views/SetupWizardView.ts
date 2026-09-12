@@ -32,6 +32,23 @@ export function needsSetupWizard(settings: Record<string, unknown>): boolean {
   return !siteName?.fa;
 }
 
+export function formatPhoneTelHref(raw: string): string {
+  if (!raw) return '';
+  const normalized = raw
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632));
+  let clean = normalized.replace(/[^\d+]/g, '');
+  if (!clean) return '';
+  if (clean.startsWith('00')) {
+    clean = '+' + clean.slice(2);
+  } else if (clean.startsWith('0')) {
+    clean = '+98' + clean.slice(1);
+  } else if (!clean.startsWith('+')) {
+    clean = clean.startsWith('98') ? '+' + clean : '+98' + clean;
+  }
+  return `tel:${clean}`;
+}
+
 export function renderSetupWizardView(): string {
   return `
     <div class="setup-wizard-screen">
@@ -43,19 +60,19 @@ export function renderSetupWizardView(): string {
 
         <div data-setup-step="0" class="setup-wizard-step setup-wizard-welcome">
           <span class="icon setup-wizard-hero-icon">${icons.settings}</span>
-          <h2>به پنل مدیریت خوش آمدید</h2>
-          <p>پیش از شروع، چند مرحله‌ی کوتاه اطلاعات اصلی سایتتان را تکمیل کنید. هر مرحله را می‌توانید بعداً هم از «تنظیمات سایت» ویرایش کنید.</p>
+          <h2>راه‌اندازی اولیه‌ی سایت</h2>
+          <p>بهبار را در چند قدم کوتاه مطابق سلیقه‌ی خودتان شخصی‌سازی کنید. همه‌ی این اطلاعات را بعداً هم از منوی «تنظیمات» می‌توانید تغییر دهید.</p>
         </div>
 
         <div data-setup-step="1" class="setup-wizard-step" hidden>
-          <h2>نام سایت شما چیست؟</h2>
+          <h2>نام سامانه</h2>
           <div class="form-field">
-            <label for="setup-site-name-fa">نام سایت (فارسی)</label>
+            <label for="setup-site-name-fa">نام فارسی (نمایش در هدر و متن‌ها)</label>
             <input type="text" id="setup-site-name-fa" placeholder="مثلاً بهبار" />
           </div>
           <div class="form-field">
-            <label for="setup-site-name-en">نام سایت (انگلیسی)</label>
-            <input type="text" id="setup-site-name-en" dir="ltr" placeholder="e.g. Behbar" />
+            <label for="setup-site-name-en">نام انگلیسی (اختیاری)</label>
+            <input type="text" id="setup-site-name-en" dir="ltr" placeholder="Behbar" />
           </div>
           <p class="error-text" id="setup-site-name-error" hidden>نام فارسی سایت را وارد کنید.</p>
         </div>
@@ -72,13 +89,10 @@ export function renderSetupWizardView(): string {
         <div data-setup-step="3" class="setup-wizard-step" hidden>
           <h2>اطلاعات تماس</h2>
           <div class="form-field">
-            <label for="setup-phone-display">شماره تماس (نمایشی)</label>
-            <input type="text" id="setup-phone-display" dir="ltr" placeholder="021-200200" />
+            <label for="setup-phone-display">شماره تماس</label>
+            <input type="text" id="setup-phone-display" dir="ltr" placeholder="021-200200 یا 0912..." />
           </div>
-          <div class="form-field">
-            <label for="setup-phone-tel">لینک شماره‌گیری</label>
-            <input type="text" id="setup-phone-tel" dir="ltr" placeholder="tel:+9821200200" />
-          </div>
+          <p class="setup-wizard-hint">لینک شماره‌گیری مستقیم (جهت تماس با کلیک مشتریان) به‌صورت خودکار از روی همین شماره ساخته می‌شود.</p>
         </div>
 
         <div data-setup-step="4" class="setup-wizard-step" hidden>
@@ -205,8 +219,8 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
         }
       } else if (currentStep === 3) {
         const phoneDisplay = (document.getElementById('setup-phone-display') as HTMLInputElement).value.trim();
-        const phoneTelHref = (document.getElementById('setup-phone-tel') as HTMLInputElement).value.trim();
-        if (phoneDisplay || phoneTelHref) {
+        if (phoneDisplay) {
+          const phoneTelHref = formatPhoneTelHref(phoneDisplay);
           const contact = (settings.contact as Record<string, unknown> | undefined) ?? {};
           await updateSetting('contact', { ...contact, phoneDisplay, phoneTelHref });
         }
@@ -302,7 +316,6 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
 
       const contact = (settings.contact as { phoneDisplay?: string; phoneTelHref?: string } | undefined) ?? {};
       (document.getElementById('setup-phone-display') as HTMLInputElement).value = contact.phoneDisplay ?? '';
-      (document.getElementById('setup-phone-tel') as HTMLInputElement).value = contact.phoneTelHref ?? '';
 
       const cities = settings.service_cities as { originCity?: { city?: string; province?: string } } | undefined;
       (document.getElementById('setup-origin-province') as HTMLInputElement).value = cities?.originCity?.province ?? '';
