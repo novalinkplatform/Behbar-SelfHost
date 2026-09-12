@@ -50,6 +50,8 @@ do_update() {
     cp "$TMP_UP/behbar.sh" /usr/local/bin/behbar
     chmod +x /usr/local/bin/behbar
     ln -sf /usr/local/bin/behbar /usr/local/bin/beh-manager 2>/dev/null || true
+    cp "$TMP_UP/VERSION" "$INSTALL_DIR/VERSION" 2>/dev/null || true
+    cp "$TMP_UP/CHANGELOG.json" "$INSTALL_DIR/CHANGELOG.json" 2>/dev/null || true
 
     if [ -d "$TMP_UP/behbar-api" ]; then
       rm -rf "$INSTALL_DIR/behbar-api"
@@ -174,9 +176,13 @@ do_uninstall() {
 }
 
 while true; do
+  CURRENT_VER="1.1.0"
+  if [ -f "$INSTALL_DIR/VERSION" ]; then
+    CURRENT_VER="$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "1.1.0")"
+  fi
   echo ""
   echo "================================================================"
-  echo "                   Behbar Management Console                    "
+  echo "              Behbar Management Console (v$CURRENT_VER)         "
   echo "================================================================"
   echo " 1) Update"
   echo " 2) Change Password"

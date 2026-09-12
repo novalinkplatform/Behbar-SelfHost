@@ -1,6 +1,6 @@
 services:
   behbar-api:
-    image: behbar-api:1.4.1
+    image: behbar-api:1.1.0
     build:
       context: ./behbar-api
       dockerfile: Dockerfile.selfhost
@@ -14,7 +14,7 @@ services:
       - /opt/behbar:/opt/behbar:ro
 
   behbar-site:
-    image: behbar-site:1.4.1
+    image: behbar-site:1.1.0
     build:
       context: ./behbar-site
       dockerfile: Dockerfile.selfhost
@@ -23,7 +23,7 @@ services:
       SITE_DOMAIN: ${SITE_DOMAIN}
 
   behbar-admin:
-    image: behbar-admin:1.4.1
+    image: behbar-admin:1.1.0
     build:
       context: ./behbar-admin
       dockerfile: Dockerfile.selfhost

@@ -1,4 +1,4 @@
-# Behbar Server Self-Host Installation Guide (v1.4.1)
+# Behbar Server Self-Host Installation Guide (v1.1.0)
 
 This package contains everything required to deploy and run **Behbar** on your Linux server or VPS.
 

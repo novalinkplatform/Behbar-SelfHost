@@ -4686,7 +4686,7 @@ async function adminGetAnalytics(request: Request, env: Env, origin: string | nu
 
 // هر بار تغییرات معنی‌دار منتشر می‌شود، این مقدار را دستی بالا می‌بریم — منبع «آخرین نسخه» یک فایل متنی ساده
 // در ریپوی عمومی Behbar-SelfHost است (همان الگوی docker-compose.yml/Caddyfile/install.sh).
-const PRODUCT_VERSION: string = '1.4.1';
+const PRODUCT_VERSION: string = '1.1.0';
 const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/VERSION';
 const CHANGELOG_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/CHANGELOG.json';
 

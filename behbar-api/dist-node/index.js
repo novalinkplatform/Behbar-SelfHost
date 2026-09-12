@@ -3839,7 +3839,7 @@ async function adminGetAnalytics(request, env, origin) {
 // ===== Version =====
 // هر بار تغییرات معنی‌دار منتشر می‌شود، این مقدار را دستی بالا می‌بریم — منبع «آخرین نسخه» یک فایل متنی ساده
 // در ریپوی عمومی Behbar-SelfHost است (همان الگوی docker-compose.yml/Caddyfile/install.sh).
-const PRODUCT_VERSION = '1.4.1';
+const PRODUCT_VERSION = '1.1.0';
 const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/VERSION';
 const CHANGELOG_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/CHANGELOG.json';
 // batchRun (خوداستقرار) رشته‌ی خام SQL می‌خواهد و پارامتر نمی‌پذیرد، پس عدد شناسه ناچار مستقیم در متن
