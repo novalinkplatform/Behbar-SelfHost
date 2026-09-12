@@ -34,6 +34,28 @@ export function applySiteNameEverywhere(siteName?: { fa?: string; en?: string })
       /* JSON-LD نامعتبر — نادیده گرفته می‌شود */
     }
   });
+
+  if (typeof document !== 'undefined' && document.body) {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_SKIP;
+        const tag = parent.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'CODE') {
+          return NodeFilter.FILTER_SKIP;
+        }
+        return node.nodeValue?.includes('بهبار') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      },
+    });
+
+    const nodesToReplace: Text[] = [];
+    while (walker.nextNode()) {
+      nodesToReplace.push(walker.currentNode as Text);
+    }
+    for (const node of nodesToReplace) {
+      node.nodeValue = (node.nodeValue || '').replace(/بهبار/g, name);
+    }
+  }
 }
 
 // پیش‌فرض همیشه همین فایل باندل‌شده است؛ اگر خریدار در تنظیمات لوگوی خودش را گذاشته باشد، همین‌جا

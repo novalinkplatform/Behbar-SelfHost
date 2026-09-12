@@ -174,7 +174,7 @@ function renderApp(settings: Awaited<ReturnType<typeof loadSettings>>, testimoni
     .map((section) => {
       if (section.type !== 'hero' && section.visible === false) return '';
       return section.type === 'hero'
-        ? renderHero(vehicleTypes, section, settings.service_cities, settings.service_categories)
+        ? renderHero(vehicleTypes, section, settings.service_cities, settings.service_categories, settings.hero_slogan)
         : renderContentBlock(section, testimonials);
     })
     .join('');

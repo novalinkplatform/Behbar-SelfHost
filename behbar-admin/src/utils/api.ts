@@ -243,7 +243,11 @@ export async function fetchMe(): Promise<StaffInfo> {
   const res = await authedFetch('/api/staff/me');
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(typeof body?.error === 'string' ? body.error : 'دریافت اطلاعات ناموفق بود.');
-  return { ...(body.staff as StaffInfo), licenseLocked: Boolean(body.licenseLocked) };
+  return {
+    ...(body.staff as StaffInfo),
+    licenseLocked: Boolean(body.licenseLocked),
+    licenseSummary: body.licenseSummary,
+  };
 }
 
 export async function fetchRequests(status?: string): Promise<OrderRecord[]> {

@@ -1,4 +1,4 @@
-import{B as e,C as t,F as n,I as r,L as i,M as a,P as o,R as s,S as c,_ as l,a as u,b as d,c as f,g as p,h as m,i as h,l as g,n as _,r as v,t as y,v as b,x,y as S}from"./appReady-DNSS-HAw.js";function C(t,n){let r=e(t.paragraphs,t.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),i=t.list?`<ul class="legal-list">${e(t.list,t.listEn??t.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
+import{B as e,C as t,F as n,I as r,L as i,M as a,P as o,R as s,S as c,_ as l,a as u,b as d,c as f,g as p,h as m,i as h,l as g,n as _,r as v,t as y,v as b,x,y as S}from"./appReady-Dy-K2yk_.js";function C(t,n){let r=e(t.paragraphs,t.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),i=t.list?`<ul class="legal-list">${e(t.list,t.listEn??t.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
     <section class="legal-section">
       <div class="legal-section-head">
         <span class="legal-section-index">${a(n+1)}</span>

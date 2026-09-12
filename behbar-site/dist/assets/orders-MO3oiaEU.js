@@ -1,4 +1,4 @@
-import{B as e,C as t,F as n,I as r,L as i,M as a,P as o,R as s,S as c,V as l,_ as u,a as d,b as f,c as p,g as m,h,i as g,l as _,n as v,r as y,t as b,v as x,x as S,y as C}from"./appReady-DNSS-HAw.js";import{d as w,f as T,l as E,m as D,r as O,u as k}from"./customerAuth-BPtzfzOh.js";import{a as A,i as j,n as M,o as N,r as P,t as F}from"./format-_0nhBJ4U.js";function I(){return`
+import{B as e,C as t,F as n,I as r,L as i,M as a,P as o,R as s,S as c,V as l,_ as u,a as d,b as f,c as p,g as m,h,i as g,l as _,n as v,r as y,t as b,v as x,x as S,y as C}from"./appReady-Dy-K2yk_.js";import{d as w,f as T,l as E,m as D,r as O,u as k}from"./customerAuth-CtjowNRw.js";import{a as A,i as j,n as M,o as N,r as P,t as F}from"./format-BcMnwwKA.js";function I(){return`
     <article class="orders-page">
       <div class="container orders-container">
         <nav class="article-breadcrumb" aria-label="${e(`مسیر صفحه`,`Breadcrumb`)}">

@@ -1,16 +1,33 @@
 import { icons } from '../components/icons.ts';
 import { pick } from '../i18n/lang.ts';
 import { API_BASE_URL } from '../data/config.ts';
-import type { VehicleTypeSetting } from '../utils/dynamicContent.ts';
+import type { VehicleTypeSetting, CareerPositionSetting } from '../utils/dynamicContent.ts';
 import { DEFAULT_VEHICLE_TYPES } from '../data/services.ts';
 
-const POSITIONS: { id: string; label: string; labelEn: string }[] = [
-  { id: 'driver', label: 'راننده', labelEn: 'Driver' },
-  { id: 'worker', label: 'کارگر', labelEn: 'Laborer' },
-  { id: 'other', label: 'سایر', labelEn: 'Other' },
+const FALLBACK_POSITIONS: { id: string; label: string; labelEn: string; requiresVehicle?: boolean }[] = [
+  { id: 'driver', label: 'راننده', labelEn: 'Driver', requiresVehicle: true },
+  { id: 'worker', label: 'کارگر', labelEn: 'Laborer', requiresVehicle: false },
+  { id: 'other', label: 'سایر', labelEn: 'Other', requiresVehicle: false },
 ];
 
-export function renderCareersView(vehicleTypes: VehicleTypeSetting[] = DEFAULT_VEHICLE_TYPES): string {
+export function renderCareersView(
+  vehicleTypes: VehicleTypeSetting[] = DEFAULT_VEHICLE_TYPES,
+  careerPositions?: CareerPositionSetting[],
+  siteName?: { fa?: string; en?: string },
+): string {
+  const activePositions = Array.isArray(careerPositions) && careerPositions.length
+    ? careerPositions.filter((p) => p.active !== false).map((p) => ({
+        id: p.id,
+        label: p.title,
+        labelEn: p.titleEn || p.title,
+        requiresVehicle: Boolean(p.requiresVehicle),
+      }))
+    : FALLBACK_POSITIONS;
+
+  const positionsToUse = activePositions.length ? activePositions : FALLBACK_POSITIONS;
+  const brandFa = siteName?.fa || 'بهبار';
+  const brandEn = siteName?.en || 'Behbar';
+
   return `
     <article class="orders-page careers-page">
       <div class="container orders-container">
@@ -20,10 +37,10 @@ export function renderCareersView(vehicleTypes: VehicleTypeSetting[] = DEFAULT_V
           <span aria-current="page">${pick('فرصت‌های شغلی', 'Careers')}</span>
         </nav>
 
-        <h1 class="article-title">${pick('فرصت‌های شغلی بهبار', 'Careers at Behbar')}</h1>
+        <h1 class="article-title">${pick(`فرصت‌های شغلی ${brandFa}`, `Careers at ${brandEn}`)}</h1>
         <p class="article-excerpt">${pick(
-          'به تیم بهبار بپیوندید؛ به نیروی راننده، کارگر و سایر همکاران نیاز داریم. فرم زیر را پر کنید تا همکاران ما با شما تماس بگیرند.',
-          'Join the Behbar team — we’re hiring drivers, laborers, and other roles. Fill out the form below and our team will get in touch.',
+          `به تیم ${brandFa} بپیوندید؛ به نیروی راننده، کارگر و سایر همکاران نیاز داریم. فرم زیر را پر کنید تا همکاران ما با شما تماس بگیرند.`,
+          `Join the ${brandEn} team — we’re hiring drivers, laborers, and other roles. Fill out the form below and our team will get in touch.`,
         )}</p>
 
         <div class="careers-form-card" id="careers-form-card">
@@ -50,7 +67,7 @@ export function renderCareersView(vehicleTypes: VehicleTypeSetting[] = DEFAULT_V
                 <label for="careers-position">${pick('موقعیت شغلی مورد نظر', 'Position of interest')}</label>
                 <div class="select-wrapper">
                   <select id="careers-position">
-                    ${POSITIONS.map((p) => `<option value="${p.id}">${pick(p.label, p.labelEn)}</option>`).join('')}
+                    ${positionsToUse.map((p) => `<option value="${p.id}" data-requires-vehicle="${Boolean(p.requiresVehicle)}">${pick(p.label, p.labelEn)}</option>`).join('')}
                   </select>
                   <span class="icon select-chevron">${icons.chevronDown}</span>
                 </div>
@@ -129,8 +146,12 @@ export function initCareersView(): void {
     return;
 
   function syncVisibility(): void {
-    customField!.hidden = positionSelect!.value !== 'other';
-    vehicleField!.hidden = positionSelect!.value !== 'driver';
+    const opt = positionSelect!.selectedOptions?.[0];
+    const isOther = positionSelect!.value === 'other' || positionSelect!.value.startsWith('pos_other');
+    const isVehicleRequired = opt?.getAttribute('data-requires-vehicle') === 'true' || positionSelect!.value === 'driver';
+
+    customField!.hidden = !isOther;
+    vehicleField!.hidden = !isVehicleRequired;
     vehicleTypeField!.hidden = hasVehicleSelect!.value !== 'yes';
   }
 
@@ -144,11 +165,15 @@ export function initCareersView(): void {
 
     const fullName = (document.getElementById('careers-name') as HTMLInputElement).value.trim();
     const phone = (document.getElementById('careers-phone') as HTMLInputElement).value.trim();
+    const opt = positionSelect!.selectedOptions?.[0];
+    const isOther = positionSelect!.value === 'other' || positionSelect!.value.startsWith('pos_other');
+    const isVehicleRequired = opt?.getAttribute('data-requires-vehicle') === 'true' || positionSelect!.value === 'driver';
     const position = positionSelect!.value;
-    const positionLabel = (document.getElementById('careers-custom-position') as HTMLInputElement).value.trim();
+    const customLabel = (document.getElementById('careers-custom-position') as HTMLInputElement).value.trim();
+    const positionLabel = isOther ? customLabel : (opt?.textContent?.trim() || position);
     const city = (document.getElementById('careers-city') as HTMLInputElement).value.trim();
     const message = (document.getElementById('careers-message') as HTMLTextAreaElement).value.trim();
-    const hasVehicle = position === 'driver' ? hasVehicleSelect!.value === 'yes' : undefined;
+    const hasVehicle = isVehicleRequired ? hasVehicleSelect!.value === 'yes' : undefined;
     const vehicleType = hasVehicle ? (document.getElementById('careers-vehicle-type') as HTMLSelectElement).value : undefined;
 
     if (!fullName || !phone) {
@@ -156,7 +181,7 @@ export function initCareersView(): void {
       errorEl!.textContent = pick('نام و شماره موبایل الزامی است.', 'Full name and mobile number are required.');
       return;
     }
-    if (position === 'other' && !positionLabel) {
+    if (isOther && !positionLabel) {
       errorEl!.hidden = false;
       errorEl!.textContent = pick('عنوان شغلی مورد نظر را وارد کنید.', 'Please enter the desired position title.');
       return;

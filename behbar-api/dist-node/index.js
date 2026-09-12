@@ -1029,6 +1029,33 @@ async function requireStaff(request, env, required, options) {
         return null;
     return staff;
 }
+async function getLicenseSummary(env) {
+    const license = await getStoredLicense(env);
+    if (license && license.status === 'active') {
+        const plan = (license.plan || '').toLowerCase();
+        if (plan.includes('golden') || plan.includes('lifetime') || plan.includes('طلایی') || !license.expiresAt) {
+            return { type: 'golden', text: 'نسخه طلایی - بدون پایان' };
+        }
+        const expires = new Date(license.expiresAt).getTime();
+        const days = Math.max(0, Math.ceil((expires - Date.now()) / (1000 * 60 * 60 * 24)));
+        if (days > 1000) {
+            return { type: 'golden', text: 'نسخه طلایی - بدون پایان' };
+        }
+        return { type: 'annual', text: `نسخه یک‌ساله (${days} روز باقی‌مانده)`, daysRemaining: days };
+    }
+    // Trial mode
+    if (license && license.expiresAt) {
+        const expires = new Date(license.expiresAt).getTime();
+        const days = Math.max(0, Math.ceil((expires - Date.now()) / (1000 * 60 * 60 * 24)));
+        return { type: 'trial', text: days > 0 ? `نسخه آزمایشی (${days} روز فعال)` : 'نسخه آزمایشی (پایان یافته)', daysRemaining: days };
+    }
+    // Fallback: calculate from earliest staff or now (7 days trial from install)
+    const firstStaff = await env.DB.prepare('SELECT created_at FROM staff_members ORDER BY id ASC LIMIT 1').first().catch(() => null);
+    const installTime = firstStaff?.created_at ? new Date(firstStaff.created_at).getTime() : Date.now();
+    const trialEnd = installTime + 7 * 24 * 60 * 60 * 1000;
+    const days = Math.max(0, Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24)));
+    return { type: 'trial', text: days > 0 ? `نسخه آزمایشی (${days} روز فعال)` : 'نسخه آزمایشی (پایان یافته)', daysRemaining: days };
+}
 async function staffMe(request, env, origin) {
     const staff = await resolveStaff(request, env);
     if (!staff)
@@ -1038,7 +1065,8 @@ async function staffMe(request, env, origin) {
     // نیاز به مجوز settings؛ برخلاف GET /api/admin/license که به آن مجوز نیاز دارد، این‌جا محل درستی است
     // برای اینکه هر نقشی بفهمد نصب قفل است یا نه، بدون افشای جزئیات لایسنس.
     const licenseLocked = await isInstallationLicenseLocked(env);
-    return json({ staff: toStaffClientShape(staff, rolesMap), licenseLocked }, 200, origin);
+    const licenseSummary = await getLicenseSummary(env);
+    return json({ staff: toStaffClientShape(staff, rolesMap), licenseLocked, licenseSummary }, 200, origin);
 }
 async function adminListRequests(request, url, env, origin) {
     const phone = url.searchParams.get('phone');
@@ -2606,6 +2634,8 @@ const SETTING_KEYS = [
     'branding',
     'language_mode',
     'setup_completed',
+    'career_positions',
+    'hero_slogan',
 ];
 // 'plugins' can hold provider secrets (e.g. SMS API tokens) and must never be exposed on this public, unauthenticated endpoint.
 const PUBLIC_SETTING_KEYS = SETTING_KEYS.filter((k) => k !== 'plugins' && k !== 'license');
@@ -2646,17 +2676,32 @@ async function publicGetSettings(env, origin) {
             /* skip malformed row */
         }
     }
-    const currentFooter = settings.footer;
-    const isOldMovingFooter = !currentFooter ||
-        currentFooter.copyright?.fa !== 'همه حقوق برای بهبار محفوظ است.' ||
-        !currentFooter.seoParagraphs?.[0]?.fa?.includes('اسکریپت') ||
-        currentFooter.seoParagraphs?.[0]?.fa?.includes('به‌بار');
-    if (isOldMovingFooter) {
-        settings.footer = DEFAULT_TEMPLATE_SALE_FOOTER;
-        env.DB.prepare("INSERT INTO site_settings (key, value_json) VALUES ('footer', ?) ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = datetime('now')")
-            .bind(JSON.stringify(DEFAULT_TEMPLATE_SALE_FOOTER))
-            .run()
-            .catch(() => { });
+    if (env.RUNTIME === 'selfhost') {
+        const currentFooter = settings.footer;
+        if (!currentFooter || currentFooter.seoParagraphs?.[0]?.fa?.includes('ژاکت') || currentFooter.seoParagraphs?.[0]?.fa?.includes('اسکریپت')) {
+            const emptyFooter = {
+                seoParagraphs: [],
+                copyright: {
+                    fa: currentFooter?.copyright?.fa && !currentFooter.copyright.fa.includes('ژاکت') ? currentFooter.copyright.fa : 'همه حقوق محفوظ است.',
+                    en: currentFooter?.copyright?.en ?? 'All rights reserved.',
+                },
+            };
+            settings.footer = emptyFooter;
+        }
+    }
+    else {
+        const currentFooter = settings.footer;
+        const isOldMovingFooter = !currentFooter ||
+            currentFooter.copyright?.fa !== 'همه حقوق برای بهبار محفوظ است.' ||
+            !currentFooter.seoParagraphs?.[0]?.fa?.includes('اسکریپت') ||
+            currentFooter.seoParagraphs?.[0]?.fa?.includes('به‌بار');
+        if (isOldMovingFooter) {
+            settings.footer = DEFAULT_TEMPLATE_SALE_FOOTER;
+            env.DB.prepare("INSERT INTO site_settings (key, value_json) VALUES ('footer', ?) ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = datetime('now')")
+                .bind(JSON.stringify(DEFAULT_TEMPLATE_SALE_FOOTER))
+                .run()
+                .catch(() => { });
+        }
     }
     await ensureCustomPagesTable(env);
     const { results: customNavPages } = await env.DB.prepare("SELECT id, slug, title, title_en, show_in_header, show_in_footer FROM custom_pages WHERE status = 'published' AND (show_in_header = 1 OR show_in_footer = 1)").all().catch(() => ({ results: [] }));
@@ -3794,7 +3839,7 @@ async function adminGetAnalytics(request, env, origin) {
 // ===== Version =====
 // هر بار تغییرات معنی‌دار منتشر می‌شود، این مقدار را دستی بالا می‌بریم — منبع «آخرین نسخه» یک فایل متنی ساده
 // در ریپوی عمومی Behbar-SelfHost است (همان الگوی docker-compose.yml/Caddyfile/install.sh).
-const PRODUCT_VERSION = '1.0.0';
+const PRODUCT_VERSION = '1.4.1';
 const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/VERSION';
 const CHANGELOG_URL = 'https://raw.githubusercontent.com/novalinkplatform/Behbar-SelfHost/main/CHANGELOG.json';
 // batchRun (خوداستقرار) رشته‌ی خام SQL می‌خواهد و پارامتر نمی‌پذیرد، پس عدد شناسه ناچار مستقیم در متن

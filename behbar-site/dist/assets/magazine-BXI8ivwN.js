@@ -1,4 +1,4 @@
-import{B as e,C as t,F as n,I as r,L as i,M as a,O as o,P as s,R as c,S as l,V as u,_ as d,a as f,b as p,c as m,d as h,g,h as _,i as v,k as y,l as b,n as x,r as S,t as C,v as w,x as T,y as E}from"./appReady-DNSS-HAw.js";function D(t){return`${a(t.readingTime)} ${e(`دقیقه`,`min`)}`}function O(e){return e.publishedAt?o(y(new Date(e.publishedAt))):``}function k(t,n,r){return`
+import{B as e,C as t,F as n,I as r,L as i,M as a,O as o,P as s,R as c,S as l,V as u,_ as d,a as f,b as p,c as m,d as h,g,h as _,i as v,k as y,l as b,n as x,r as S,t as C,v as w,x as T,y as E}from"./appReady-Dy-K2yk_.js";function D(t){return`${a(t.readingTime)} ${e(`دقیقه`,`min`)}`}function O(e){return e.publishedAt?o(y(new Date(e.publishedAt))):``}function k(t,n,r){return`
     <a class="magazine-card${r?` magazine-card-featured`:``}" href="/magazine/${t.slug}" style="animation-delay: ${n*90}ms">
       <div class="magazine-card-cover">
         ${t.coverImageUrl?`<img src="${t.coverImageUrl}" alt="" loading="lazy" />`:`<span class="icon">${u.article}</span>`}

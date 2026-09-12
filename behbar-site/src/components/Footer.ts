@@ -60,10 +60,6 @@ function renderFooterLinks(settings?: SiteSettings): string {
 }
 
 const FALLBACK_SITE_NAME = { fa: 'بهبار', en: 'Behbar' };
-const FALLBACK_COPYRIGHT = {
-  fa: 'همه حقوق برای بهبار محفوظ است.',
-  en: 'All rights reserved for Behbar.',
-};
 
 const FALLBACK_SEO_PARAGRAPHS = [
   {
@@ -170,11 +166,22 @@ export function renderFooter(settings?: SiteSettings): string {
   const year = new Date().getFullYear();
   const siteName = settings?.site_name ?? FALLBACK_SITE_NAME;
   const footerData = settings?.footer;
-  const copyright = FALLBACK_COPYRIGHT;
+  const copyright = footerData?.copyright?.fa
+    ? footerData.copyright
+    : {
+        fa: siteName.fa ? `همه حقوق برای ${siteName.fa} محفوظ است.` : 'همه حقوق محفوظ است.',
+        en: siteName.en ? `All rights reserved for ${siteName.en}.` : 'All rights reserved.',
+      };
 
   const rawSeo = footerData?.seoParagraphs;
-  const isOldMovingText = !rawSeo?.length || rawSeo.some((p) => p.fa.includes('یک پلتفرم آنلاین برای ثبت درخواست اسباب‌کشی'));
-  const sourceSeo = isOldMovingText ? FALLBACK_SEO_PARAGRAPHS : rawSeo;
+  let sourceSeo: Array<{ fa: string; en?: string }> = [];
+  if (Array.isArray(rawSeo)) {
+    // If explicitly provided (including empty array []), respect it
+    sourceSeo = rawSeo;
+  } else if (rawSeo === undefined) {
+    sourceSeo = FALLBACK_SEO_PARAGRAPHS;
+  }
+
   const seoParagraphs = sourceSeo.map((p) => ({
     fa: p.fa.replace(/به‌بار|به بار/g, 'بهبار'),
     en: p.en,

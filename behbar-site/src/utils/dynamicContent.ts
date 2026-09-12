@@ -145,6 +145,21 @@ export interface BrandingSettings {
   faviconUrl?: string;
 }
 
+export interface HeroSloganSetting {
+  enabled?: boolean;
+  headline?: { fa?: string; en?: string };
+  subtitle?: { fa?: string; en?: string };
+}
+
+export interface CareerPositionSetting {
+  id: string;
+  title: string;
+  titleEn?: string;
+  description?: string;
+  requiresVehicle?: boolean;
+  active: boolean;
+}
+
 export interface SiteSettings {
   site_name?: { fa: string; en: string };
   footer?: { seoParagraphs: { fa: string; en: string }[]; copyright: { fa: string; en: string } };
@@ -160,6 +175,8 @@ export interface SiteSettings {
   seo?: SeoSettings;
   branding?: BrandingSettings;
   language_mode?: 'both' | 'fa' | 'en';
+  hero_slogan?: HeroSloganSetting;
+  career_positions?: CareerPositionSetting[];
   nav_pages?: Array<{
     id: number;
     slug: string;

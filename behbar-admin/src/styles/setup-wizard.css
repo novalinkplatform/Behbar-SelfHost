@@ -9,7 +9,7 @@
 
 .setup-wizard-card {
   width: 100%;
-  max-width: 480px;
+  max-width: 620px;
   background-color: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -18,6 +18,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  box-sizing: border-box;
 }
 
 .setup-wizard-progress {
@@ -59,59 +60,81 @@
   margin: 0;
 }
 
+.setup-wizard-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
 .setup-wizard-welcome {
-  align-items: center;
   text-align: center;
-  padding-block: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) 0;
+}
+
+.setup-wizard-hero-icon {
+  font-size: 3rem;
+  color: var(--primary);
+  display: inline-flex;
+}
+
+.setup-wizard-done-icon {
+  color: var(--success);
+}
+
+.setup-wizard-welcome h2 {
+  font-size: 1.3rem;
+  margin-top: var(--space-2);
 }
 
 .setup-wizard-welcome p {
   color: var(--muted);
   font-size: 0.9rem;
-  line-height: 1.8;
-}
-
-.setup-wizard-hero-icon {
-  width: 46px;
-  height: 46px;
-  color: var(--primary);
-}
-
-.setup-wizard-done-icon {
-  color: var(--success, var(--primary));
-}
-
-.setup-wizard-hint {
-  font-size: 0.82rem;
-  color: var(--muted);
-  line-height: 1.7;
+  max-width: 360px;
   margin: 0;
+  line-height: 1.6;
 }
 
 .setup-wizard-vehicle-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .setup-wizard-vehicle-row {
   display: grid;
-  grid-template-columns: auto 1fr 1fr;
-  align-items: end;
+  grid-template-columns: 90px 1fr 1fr;
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  background-color: var(--surface);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .setup-wizard-vehicle-row .form-field {
   gap: 0.3rem;
+  min-width: 0;
+}
+
+.setup-wizard-vehicle-row input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .setup-wizard-vehicle-label {
   font-weight: 600;
   font-size: 0.9rem;
-  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .setup-wizard-footer {
@@ -141,9 +164,10 @@
   text-decoration: underline;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .setup-wizard-vehicle-row {
     grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
   }
 
   .setup-wizard-vehicle-label {

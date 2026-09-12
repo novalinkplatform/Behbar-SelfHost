@@ -239,6 +239,40 @@ export function renderSettingsView(): string {
       </div>
 
       <div class="editor-sidebar-card">
+        <h3>شعار و پیام اصلی سایت (هیرو)</h3>
+        <p class="settings-panel-hint">
+          پیام و متن خوش‌آمدگویی که در بالای صفحه اصلی کنار فرم استعلام قیمت نمایش داده می‌شود.
+        </p>
+        <div style="margin-bottom: var(--space-4)">
+          <label class="custom-page-checkbox-label" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="settings-hero-slogan-enabled" />
+            <span style="font-weight: 500;">نمایش شعار در بالای صفحه اصلی</span>
+          </label>
+        </div>
+        <div class="settings-form-grid">
+          <div class="form-field" data-i18n="fa">
+            <label for="settings-hero-slogan-headline-fa">عنوان اصلی / شعار (فارسی)</label>
+            <input type="text" id="settings-hero-slogan-headline-fa" placeholder="حمل و جابه‌جایی، ساده‌تر از همیشه" />
+          </div>
+          <div class="form-field" data-i18n="en">
+            <label for="settings-hero-slogan-headline-en">عنوان اصلی / شعار (انگلیسی)</label>
+            <input type="text" id="settings-hero-slogan-headline-en" dir="ltr" placeholder="Moving and hauling, easier than ever" />
+          </div>
+        </div>
+        <div class="settings-form-grid" style="margin-top: var(--space-3)">
+          <div class="form-field" data-i18n="fa">
+            <label for="settings-hero-slogan-subtitle-fa">توضیحات تکمیلی / زیرعنوان (فارسی)</label>
+            <textarea id="settings-hero-slogan-subtitle-fa" rows="2" placeholder="برای اثاث‌کشی یا حمل بار درخواست خود را ثبت کنید؛ در سریع‌ترین زمان با شما هماهنگ می‌کنیم."></textarea>
+          </div>
+          <div class="form-field" data-i18n="en">
+            <label for="settings-hero-slogan-subtitle-en">توضیحات تکمیلی / زیرعنوان (انگلیسی)</label>
+            <textarea id="settings-hero-slogan-subtitle-en" rows="2" dir="ltr" placeholder="Submit your request for moving or freight; we'll get in touch with you as quickly as possible."></textarea>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" style="margin-top: var(--space-3)" data-save-setting="hero_slogan">ذخیره شعار سایت</button>
+      </div>
+
+      <div class="editor-sidebar-card">
         <h3>متن فوتر (سئو)</h3>
         <div id="settings-footer-paragraphs"></div>
         <div class="settings-form-grid" style="margin-top: var(--space-4)">
@@ -567,6 +601,17 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     applyLanguageVisibility(container);
     (document.getElementById('settings-copyright-fa') as HTMLInputElement).value = footer.copyright?.fa ?? '';
     (document.getElementById('settings-copyright-en') as HTMLInputElement).value = footer.copyright?.en ?? '';
+
+    const heroSlogan = (settings.hero_slogan as {
+      enabled?: boolean;
+      headline?: { fa?: string; en?: string };
+      subtitle?: { fa?: string; en?: string };
+    } | undefined) ?? {};
+    (document.getElementById('settings-hero-slogan-enabled') as HTMLInputElement).checked = heroSlogan.enabled !== false;
+    (document.getElementById('settings-hero-slogan-headline-fa') as HTMLInputElement).value = heroSlogan.headline?.fa ?? '';
+    (document.getElementById('settings-hero-slogan-headline-en') as HTMLInputElement).value = heroSlogan.headline?.en ?? '';
+    (document.getElementById('settings-hero-slogan-subtitle-fa') as HTMLTextAreaElement).value = heroSlogan.subtitle?.fa ?? '';
+    (document.getElementById('settings-hero-slogan-subtitle-en') as HTMLTextAreaElement).value = heroSlogan.subtitle?.en ?? '';
   }
 
   document.querySelector('[data-save-setting="site_name"]')?.addEventListener('click', async (e) => {
@@ -628,6 +673,29 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
         copyright: {
           fa: (document.getElementById('settings-copyright-fa') as HTMLInputElement).value,
           en: (document.getElementById('settings-copyright-en') as HTMLInputElement).value,
+        },
+      });
+      showSaved();
+    } catch (err) {
+      showError(err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.querySelector('[data-save-setting="hero_slogan"]')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    btn.disabled = true;
+    try {
+      await updateSetting('hero_slogan', {
+        enabled: (document.getElementById('settings-hero-slogan-enabled') as HTMLInputElement).checked,
+        headline: {
+          fa: (document.getElementById('settings-hero-slogan-headline-fa') as HTMLInputElement).value.trim(),
+          en: (document.getElementById('settings-hero-slogan-headline-en') as HTMLInputElement).value.trim(),
+        },
+        subtitle: {
+          fa: (document.getElementById('settings-hero-slogan-subtitle-fa') as HTMLTextAreaElement).value.trim(),
+          en: (document.getElementById('settings-hero-slogan-subtitle-en') as HTMLTextAreaElement).value.trim(),
         },
       });
       showSaved();

@@ -315,6 +315,11 @@ async function loadSidebarBranding(): Promise<void> {
     if (faviconUrl) {
       document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]').forEach((link) => (link.href = faviconUrl));
     }
+    const siteName = settings.site_name as { fa?: string; en?: string } | undefined;
+    if (siteName?.fa?.trim()) {
+      document.title = `${siteName.fa.trim()} - پنل مدیریت`;
+      document.querySelectorAll<HTMLElement>('.admin-logo-title').forEach((el) => (el.textContent = siteName.fa!.trim()));
+    }
   } catch {
     /* بی‌اهمیت — لوگوی پیش‌فرض همان‌طور می‌ماند. */
   }

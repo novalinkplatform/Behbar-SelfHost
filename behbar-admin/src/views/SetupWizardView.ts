@@ -1,6 +1,8 @@
 import { icons } from '../components/icons.ts';
 import { fetchSettings, updateSetting, updateStaff } from '../utils/api.ts';
 import type { StaffInfo } from '../utils/auth.ts';
+import { provinces } from '../data/provinces.ts';
+
 
 interface WizardVehicleType {
   id: string;
@@ -97,18 +99,23 @@ export function renderSetupWizardView(): string {
 
         <div data-setup-step="4" class="setup-wizard-step" hidden>
           <h2>شهر مبدأ خدمات</h2>
-          <p class="setup-wizard-hint">شهری که کار شما از آن‌جا شروع می‌شود — این شهر در فرم ثبت درخواست مشتریان از پیش انتخاب‌شده نمایش داده می‌شود.</p>
+          <p class="setup-wizard-hint">شهری که خدمات شما از آن‌جا شروع می‌شود — این شهر در فرم ثبت درخواست مشتریان به‌صورت پیش‌فرض انتخاب می‌شود.</p>
           <div class="settings-form-grid">
             <div class="form-field">
               <label for="setup-origin-province">استان</label>
-              <input type="text" id="setup-origin-province" placeholder="مثلاً تهران" />
+              <select id="setup-origin-province">
+                <option value="">انتخاب استان...</option>
+                ${provinces.map((p) => `<option value="${p.name}">${p.name}</option>`).join('')}
+              </select>
             </div>
             <div class="form-field">
-              <label for="setup-origin-city">شهر</label>
-              <input type="text" id="setup-origin-city" placeholder="مثلاً تهران" />
+              <label for="setup-origin-city">شهرستان / شهر</label>
+              <select id="setup-origin-city" disabled>
+                <option value="">ابتدا استان را انتخاب کنید...</option>
+              </select>
             </div>
           </div>
-          <p class="setup-wizard-hint">این مرحله اختیاری است — اگر خالی بگذارید، مشتریان از بین همه‌ی شهرهای ایران انتخاب می‌کنند.</p>
+          <p class="setup-wizard-hint">این مرحله اختیاری است — اگر انتخاب نکنید، مشتریان از بین همه‌ی شهرهای کشور انتخاب می‌کنند.</p>
         </div>
 
         <div data-setup-step="5" class="setup-wizard-step" hidden>
@@ -172,7 +179,10 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
       .map(
         (v, i) => `
         <div class="setup-wizard-vehicle-row">
-          <span class="setup-wizard-vehicle-label">${v.label}</span>
+          <span class="setup-wizard-vehicle-label">
+            ${icons[v.icon as keyof typeof icons] ? `<span class="icon">${icons[v.icon as keyof typeof icons]}</span>` : ''}
+            <span>${v.label}</span>
+          </span>
           <div class="form-field">
             <label>قیمت پایه (تومان)</label>
             <input type="number" min="0" step="1000" data-vehicle-base-price="${i}" value="${v.basePrice}" />
@@ -225,8 +235,8 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
           await updateSetting('contact', { ...contact, phoneDisplay, phoneTelHref });
         }
       } else if (currentStep === 4) {
-        const province = (document.getElementById('setup-origin-province') as HTMLInputElement).value.trim();
-        const city = (document.getElementById('setup-origin-city') as HTMLInputElement).value.trim();
+        const province = (document.getElementById('setup-origin-province') as HTMLSelectElement).value.trim();
+        const city = (document.getElementById('setup-origin-city') as HTMLSelectElement).value.trim();
         if (city && province) {
           const cities = (settings.service_cities as Record<string, unknown> | undefined) ?? {};
           await updateSetting('service_cities', {
@@ -304,6 +314,27 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
     onDone(true);
   });
 
+  const provinceSelect = document.getElementById('setup-origin-province') as HTMLSelectElement | null;
+  const citySelect = document.getElementById('setup-origin-city') as HTMLSelectElement | null;
+
+  function populateCities(provName: string, selectedCity = ''): void {
+    if (!citySelect) return;
+    const found = provinces.find((p) => p.name === provName);
+    if (!found || !found.cities.length) {
+      citySelect.innerHTML = '<option value="">ابتدا استان را انتخاب کنید...</option>';
+      citySelect.disabled = true;
+      return;
+    }
+    citySelect.disabled = false;
+    citySelect.innerHTML =
+      '<option value="">انتخاب شهرستان / شهر...</option>' +
+      found.cities.map((c: string) => `<option value="${c}" ${c === selectedCity ? 'selected' : ''}>${c}</option>`).join('');
+  }
+
+  provinceSelect?.addEventListener('change', () => {
+    populateCities(provinceSelect.value);
+  });
+
   fetchSettings()
     .then((fetched) => {
       settings = fetched;
@@ -318,8 +349,12 @@ export function initSetupWizardView(staff: StaffInfo, onDone: (skippedOnly: bool
       (document.getElementById('setup-phone-display') as HTMLInputElement).value = contact.phoneDisplay ?? '';
 
       const cities = settings.service_cities as { originCity?: { city?: string; province?: string } } | undefined;
-      (document.getElementById('setup-origin-province') as HTMLInputElement).value = cities?.originCity?.province ?? '';
-      (document.getElementById('setup-origin-city') as HTMLInputElement).value = cities?.originCity?.city ?? '';
+      const initialProv = cities?.originCity?.province ?? '';
+      const initialCity = cities?.originCity?.city ?? '';
+      if (provinceSelect && initialProv) {
+        provinceSelect.value = initialProv;
+        populateCities(initialProv, initialCity);
+      }
 
       const existingVehicles = settings.vehicle_types as WizardVehicleType[] | undefined;
       vehicleTypes = existingVehicles && existingVehicles.length ? existingVehicles : FALLBACK_VEHICLE_TYPES;

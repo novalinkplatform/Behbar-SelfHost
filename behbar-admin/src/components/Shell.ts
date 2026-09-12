@@ -63,6 +63,9 @@ export function renderShell(staff: StaffInfo): string {
           </nav>
         </div>
         <div class="admin-topbar-end">
+          <span class="admin-license-badge admin-license-badge-${staff.licenseSummary?.type || 'trial'}">
+            ${staff.licenseSummary?.text || 'نسخه آزمایشی (۷ روز فعال)'}
+          </span>
           <span class="admin-topbar-version" id="admin-sidebar-version" hidden></span>
           <button type="button" class="admin-topbar-icon-btn" id="admin-wallet-btn" title="کیف پول من">
             <span class="icon">${icons.wallet}</span>

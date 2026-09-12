@@ -35,6 +35,11 @@ export interface StaffInfo {
   // همیشه false است. از GET /api/staff/me می‌آید، نه یک مسیر جدا، چون هر نقشی (حتی راننده/کارگر) باید
   // بدون نیاز به مجوز settings بتواند بفهمد نصب قفل است یا نه.
   licenseLocked?: boolean;
+  licenseSummary?: {
+    type: 'trial' | 'annual' | 'golden';
+    text: string;
+    daysRemaining?: number;
+  };
 }
 
 export function saveSession(token: string, staff: StaffInfo): void {

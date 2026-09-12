@@ -33,7 +33,7 @@ function renderApp(settings: Awaited<ReturnType<typeof loadSettings>>): void {
     <a class="skip-link" href="#main-content">${pick('رفتن به محتوای اصلی', 'Skip to main content')}</a>
     ${renderHeader(settings)}
     <main id="main-content">
-      ${renderCareersView(vehicleTypes)}
+      ${renderCareersView(vehicleTypes, settings.career_positions, settings.site_name)}
     </main>
     ${renderFooter(settings)}
     ${renderBottomNav()}
