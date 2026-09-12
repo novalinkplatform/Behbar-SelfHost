@@ -1,26 +1,32 @@
 services:
   behbar-api:
-    image: ghcr.io/novalinkplatform/behbar-api:latest
+    image: behbar-api:1.4.1
+    build:
+      context: ./behbar-api
+      dockerfile: Dockerfile.selfhost
     restart: unless-stopped
     environment:
       SITE_ORIGIN: https://${SITE_DOMAIN}
       DATA_DIR: /data
     volumes:
       - behbar-data:/data
-      # برای دکمه‌ی «به‌روزرسانی یک‌کلیکی» در پنل مدیریت — به کانتینر اجازه می‌دهد یک کانتینر کمکی
-      # (docker run) بزند که pull/up -d را روی همین پروژه‌ی compose اجرا کند. این یعنی هر کسی که به
-      # پنل مدیریت این کانتینر دسترسی پیدا کند عملاً به کل سرور دسترسی دارد — رمز مدیر را قوی نگه دارید.
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/behbar:/opt/behbar:ro
 
   behbar-site:
-    image: ghcr.io/novalinkplatform/behbar-site:latest
+    image: behbar-site:1.4.1
+    build:
+      context: ./behbar-site
+      dockerfile: Dockerfile.selfhost
     restart: unless-stopped
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN}
 
   behbar-admin:
-    image: ghcr.io/novalinkplatform/behbar-admin:latest
+    image: behbar-admin:1.4.1
+    build:
+      context: ./behbar-admin
+      dockerfile: Dockerfile.selfhost
     restart: unless-stopped
 
   caddy:

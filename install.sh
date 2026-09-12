@@ -88,6 +88,23 @@ mkdir -p "$INSTALL_DIR"
 cp "$SCRIPT_DIR/docker-compose.yml" "$INSTALL_DIR/docker-compose.yml"
 cp "$SCRIPT_DIR/Caddyfile" "$INSTALL_DIR/Caddyfile"
 
+# کپی سورس کانتینرها در صورت وجود در بسته
+if [ -d "$SCRIPT_DIR/behbar-api" ]; then
+  echo "در حال انتقال فایل‌های هسته برنامه..."
+  rm -rf "$INSTALL_DIR/behbar-api"
+  cp -r "$SCRIPT_DIR/behbar-api" "$INSTALL_DIR/"
+fi
+if [ -d "$SCRIPT_DIR/behbar-site" ]; then
+  echo "در حال انتقال فایل‌های وب‌سایت..."
+  rm -rf "$INSTALL_DIR/behbar-site"
+  cp -r "$SCRIPT_DIR/behbar-site" "$INSTALL_DIR/"
+fi
+if [ -d "$SCRIPT_DIR/behbar-admin" ]; then
+  echo "در حال انتقال فایل‌های پنل مدیریت..."
+  rm -rf "$INSTALL_DIR/behbar-admin"
+  cp -r "$SCRIPT_DIR/behbar-admin" "$INSTALL_DIR/"
+fi
+
 # --- نصب ابزار مدیریت beh-manager ---
 cp "$SCRIPT_DIR/beh-manager.sh" /usr/local/bin/beh-manager
 chmod +x /usr/local/bin/beh-manager
@@ -100,13 +117,22 @@ cd "$INSTALL_DIR"
 
 # --- راه‌اندازی سرویس‌ها ---
 echo ""
-echo "در حال دانلود ایمیج‌های بهبار و اجرای سرویس‌ها..."
-if ! docker compose pull; then
-  echo ""
-  echo "خطا در دریافت ایمیج‌ها. لطفاً اتصال اینترنت سرور را بررسی نموده و مجدداً تلاش فرمایید."
-  exit 1
+if [ -d "$INSTALL_DIR/behbar-api" ] && [ -d "$INSTALL_DIR/behbar-site" ] && [ -d "$INSTALL_DIR/behbar-admin" ]; then
+  echo "در حال ساخت کانتینرهای اختصاصی بهبار (Build)..."
+  docker compose build
+  echo "در حال اجرای سرویس‌ها..."
+  docker compose up -d
+else
+  echo "در حال دانلود ایمیج‌های بهبار و اجرای سرویس‌ها..."
+  if ! docker compose pull; then
+    echo "در حال تلاش برای ساخت مستقیم کانتینرها..."
+    docker compose build || {
+      echo "خطا در دانلود یا ساخت ایمیج‌ها."
+      exit 1
+    }
+  fi
+  docker compose up -d
 fi
-docker compose up -d
 
 # --- انتظار برای ساخت حساب مدیر پیش‌فرض ---
 echo "در حال پیکربندی اولیه و ساخت حساب مدیریت..."
