@@ -7,6 +7,7 @@ import {
 } from '../utils/api.ts';
 import type { CustomPageRecord } from '../utils/api.ts';
 import { ensureLanguageMode, applyLanguageVisibility } from '../utils/languageMode.ts';
+import { handleSaveButton } from '../utils/save-button.ts';
 
 // ===== Types for Homepage Layout =====
 type HomepageSectionType = 'hero' | 'block';
@@ -184,10 +185,13 @@ export function renderPagesListView(hideHeader = false): string {
               صفحه اصلی از بلوک‌های متنوع ساخته می‌شود. ترتیب، متن‌ها و نحوه نمایش هر بخش را به دلخواه تغییر دهید.
             </p>
           </div>
-          <a href="https://behbarapp.ir/" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span>مشاهده صفحه اصلی</span>
-            <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
-          </a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-primary btn-sm" id="homepage-save-btn-top">ذخیره</button>
+            <a href="https://behbarapp.ir/" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+              <span>مشاهده صفحه اصلی</span>
+              <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
+            </a>
+          </div>
         </div>
         <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
           <label class="settings-inline-toggle"><input type="checkbox" id="homepage-stories-enabled" /> نمایش نوار استوری در بالای صفحه اصلی</label>
@@ -200,11 +204,11 @@ export function renderPagesListView(hideHeader = false): string {
         <select id="homepage-section-add-type" style="height: 40px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--background);">
           ${BLOCK_LAYOUTS.map((l) => `<option value="${l}">${BLOCK_LAYOUT_LABELS[l]}</option>`).join('')}
         </select>
-        <button type="button" class="btn btn-secondary" id="homepage-section-add-btn">
+        <button type="button" class="btn btn-secondary btn-sm" id="homepage-section-add-btn">
           <span class="icon">${icons.plusCircle}</span>
           افزودن بلوک
         </button>
-        <button type="button" class="btn btn-primary" id="homepage-save-btn" style="margin-inline-start: auto;">
+        <button type="button" class="btn btn-primary btn-sm" id="homepage-save-btn" style="margin-inline-start: auto;">
           ذخیره چیدمان صفحه اصلی
         </button>
       </div>
@@ -218,10 +222,13 @@ export function renderPagesListView(hideHeader = false): string {
             <h3 style="margin: 0; font-size: 1rem;">صفحه درباره ما</h3>
             <p class="settings-panel-hint" style="margin: 4px 0 0 0;">${LEGAL_CONFIG.about.hint}</p>
           </div>
-          <a href="https://behbarapp.ir/about" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span>مشاهده صفحه درباره ما</span>
-            <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
-          </a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-primary btn-sm" id="legal-about-save-btn-top">ذخیره</button>
+            <a href="https://behbarapp.ir/about" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+              <span>مشاهده صفحه درباره ما</span>
+              <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
+            </a>
+          </div>
         </div>
       </div>
       <div id="legal-editor-about"></div>
@@ -235,10 +242,13 @@ export function renderPagesListView(hideHeader = false): string {
             <h3 style="margin: 0; font-size: 1rem;">صفحه قوانین و مقررات</h3>
             <p class="settings-panel-hint" style="margin: 4px 0 0 0;">${LEGAL_CONFIG.terms.hint}</p>
           </div>
-          <a href="https://behbarapp.ir/terms" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span>مشاهده صفحه قوانین</span>
-            <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
-          </a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-primary btn-sm" id="legal-terms-save-btn-top">ذخیره</button>
+            <a href="https://behbarapp.ir/terms" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+              <span>مشاهده صفحه قوانین</span>
+              <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
+            </a>
+          </div>
         </div>
       </div>
       <div id="legal-editor-terms"></div>
@@ -252,10 +262,13 @@ export function renderPagesListView(hideHeader = false): string {
             <h3 style="margin: 0; font-size: 1rem;">صفحه حریم خصوصی</h3>
             <p class="settings-panel-hint" style="margin: 4px 0 0 0;">${LEGAL_CONFIG.privacy.hint}</p>
           </div>
-          <a href="https://behbarapp.ir/privacy" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
-            <span>مشاهده صفحه حریم خصوصی</span>
-            <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
-          </a>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-primary btn-sm" id="legal-privacy-save-btn-top">ذخیره</button>
+            <a href="https://behbarapp.ir/privacy" target="_blank" class="btn btn-ghost btn-sm" style="display: inline-flex; align-items: center; gap: 4px;">
+              <span>مشاهده صفحه حریم خصوصی</span>
+              <span class="icon" style="width: 14px; height: 14px;">${icons.externalLink || ''}</span>
+            </a>
+          </div>
         </div>
       </div>
       <div id="legal-editor-privacy"></div>
@@ -518,21 +531,21 @@ export function initPagesListView(onEdit: (id: number | null) => void): void {
     renderHomepageList();
   });
 
-  document.getElementById('homepage-save-btn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('homepage-save-btn') as HTMLButtonElement | null;
-    if (!btn) return;
+  const saveHomepage = async (btn: HTMLButtonElement) => {
     readHomepageSectionsFromDom();
     storiesEnabled = (document.getElementById('homepage-stories-enabled') as HTMLInputElement)?.checked ?? true;
-    btn.disabled = true;
     try {
-      await updateSetting('homepage_layout', { sections: homepageSections, storiesEnabled });
+      await handleSaveButton(btn, async () => {
+        await updateSetting('homepage_layout', { sections: homepageSections, storiesEnabled });
+      });
       showSaved();
     } catch (err) {
       showError(err);
-    } finally {
-      btn.disabled = false;
     }
-  });
+  };
+
+  document.getElementById('homepage-save-btn')?.addEventListener('click', (e) => saveHomepage(e.currentTarget as HTMLButtonElement));
+  document.getElementById('homepage-save-btn-top')?.addEventListener('click', (e) => saveHomepage(e.currentTarget as HTMLButtonElement));
 
   // ===== 2. Legal Pages Logic (About, Terms, Privacy) =====
   function renderLegalEditor(slug: LegalSlug): void {
@@ -599,11 +612,11 @@ export function initPagesListView(onEdit: (id: number | null) => void): void {
       </div>
 
       <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary" id="legal-${slug}-add-section-btn">
+        <button type="button" class="btn btn-secondary btn-sm" id="legal-${slug}-add-section-btn">
           <span class="icon">${icons.plusCircle}</span>
           افزودن بخش به این صفحه
         </button>
-        <button type="button" class="btn btn-primary" id="legal-${slug}-save-btn" style="margin-inline-start: auto;">
+        <button type="button" class="btn btn-primary btn-sm" id="legal-${slug}-save-btn" style="margin-inline-start: auto;">
           ذخیره ${LEGAL_CONFIG[slug].label}
         </button>
       </div>
@@ -631,19 +644,20 @@ export function initPagesListView(onEdit: (id: number | null) => void): void {
       renderLegalEditor(slug);
     });
 
-    document.getElementById(`legal-${slug}-save-btn`)?.addEventListener('click', async () => {
+    const saveLegal = async (btn: HTMLButtonElement) => {
       readLegalFromDom(slug);
-      const btn = document.getElementById(`legal-${slug}-save-btn`) as HTMLButtonElement | null;
-      if (btn) btn.disabled = true;
       try {
-        await updateSetting('legal_pages', legalPages);
+        await handleSaveButton(btn, async () => {
+          await updateSetting('legal_pages', legalPages);
+        });
         showSaved();
       } catch (err) {
         showError(err);
-      } finally {
-        if (btn) btn.disabled = false;
       }
-    });
+    };
+
+    document.getElementById(`legal-${slug}-save-btn`)?.addEventListener('click', (e) => saveLegal(e.currentTarget as HTMLButtonElement));
+    document.getElementById(`legal-${slug}-save-btn-top`)?.addEventListener('click', (e) => saveLegal(e.currentTarget as HTMLButtonElement));
   }
 
   function readLegalFromDom(slug: LegalSlug): void {

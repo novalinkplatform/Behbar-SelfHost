@@ -149,12 +149,24 @@ export function renderFooter(settings?: SiteSettings): string {
   const year = new Date().getFullYear();
   const siteName = settings?.site_name ?? FALLBACK_SITE_NAME;
   const footerData = settings?.footer;
-  const copyright = footerData?.copyright?.fa
-    ? footerData.copyright
-    : {
-        fa: siteName.fa ? `همه حقوق برای ${siteName.fa} محفوظ است.` : 'همه حقوق محفوظ است.',
-        en: siteName.en ? `All rights reserved for ${siteName.en}.` : 'All rights reserved.',
-      };
+  let copyrightFa = footerData?.copyright?.fa;
+  if (!copyrightFa) {
+    copyrightFa = siteName.fa ? `همه حقوق برای ${siteName.fa} محفوظ است.` : 'همه حقوق محفوظ است.';
+  } else if (siteName.fa && siteName.fa !== 'بهبار' && copyrightFa.includes('بهبار')) {
+    copyrightFa = copyrightFa.replace(/به‌بار|به بار|بهبار/g, siteName.fa);
+  }
+
+  let copyrightEn = footerData?.copyright?.en;
+  if (!copyrightEn) {
+    copyrightEn = siteName.en ? `All rights reserved for ${siteName.en}.` : 'All rights reserved.';
+  } else if (siteName.en && siteName.en.toLowerCase() !== 'behbar' && /behbar/i.test(copyrightEn)) {
+    copyrightEn = copyrightEn.replace(/behbar/gi, siteName.en);
+  }
+
+  const copyright = {
+    fa: copyrightFa,
+    en: copyrightEn,
+  };
 
   const rawSeo = footerData?.seoParagraphs;
   const sourceSeo: Array<{ fa: string; en?: string }> = Array.isArray(rawSeo) ? rawSeo : [];

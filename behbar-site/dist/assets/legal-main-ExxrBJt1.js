@@ -1,4 +1,4 @@
-import{C as e,F as t,I as n,L as r,N as i,R as a,S as o,V as s,_ as c,a as l,b as u,g as d,i as f,l as p,n as m,r as h,t as g,u as _,v,w as y,x as b,y as x,z as S}from"./appReady-jYOMNzjt.js";function C(e,t){let n=s(e.paragraphs,e.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),r=e.list?`<ul class="legal-list">${s(e.list,e.listEn??e.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
+import{C as e,F as t,I as n,L as r,N as i,R as a,S as o,V as s,_ as c,a as l,b as u,g as d,i as f,l as p,n as m,r as h,t as g,u as _,v,w as y,x as b,y as x,z as S}from"./appReady-CnRz7xfg.js";function C(e,t){let n=s(e.paragraphs,e.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),r=e.list?`<ul class="legal-list">${s(e.list,e.listEn??e.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
     <section class="legal-section">
       <div class="legal-section-head">
         <span class="legal-section-index">${i(t+1)}</span>

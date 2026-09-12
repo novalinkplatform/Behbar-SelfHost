@@ -79,7 +79,7 @@
         `).join(``)}
       </div>
     </div>
-  `}function te(e){let t=k(e?.app_links),n=A(e?.certifications);return!t&&!n?``:`<div class="footer-extras">${t}${n}</div>`}function ne(e){let t=new Date().getFullYear(),r=e?.site_name??ee,i=e?.footer,a=i?.copyright?.fa?i.copyright:{fa:r.fa?`همه حقوق برای ${r.fa} محفوظ است.`:`همه حقوق محفوظ است.`,en:r.en?`All rights reserved for ${r.en}.`:`All rights reserved.`},o=i?.seoParagraphs,s=(Array.isArray(o)?o:[]).map(e=>({fa:e.fa.replace(/به‌بار|به بار/g,`بهبار`),en:e.en})),c=S(e?.contact),l=c.socialIconColor?`style="--footer-social-color:${c.socialIconColor}"`:``;return`
+  `}function te(e){let t=k(e?.app_links),n=A(e?.certifications);return!t&&!n?``:`<div class="footer-extras">${t}${n}</div>`}function ne(e){let t=new Date().getFullYear(),r=e?.site_name??ee,i=e?.footer,a=i?.copyright?.fa;a?r.fa&&r.fa!==`بهبار`&&a.includes(`بهبار`)&&(a=a.replace(/به‌بار|به بار|بهبار/g,r.fa)):a=r.fa?`همه حقوق برای ${r.fa} محفوظ است.`:`همه حقوق محفوظ است.`;let o=i?.copyright?.en;o?r.en&&r.en.toLowerCase()!==`behbar`&&/behbar/i.test(o)&&(o=o.replace(/behbar/gi,r.en)):o=r.en?`All rights reserved for ${r.en}.`:`All rights reserved.`;let s={fa:a,en:o},c=i?.seoParagraphs,l=(Array.isArray(c)?c:[]).map(e=>({fa:e.fa.replace(/به‌بار|به بار/g,`بهبار`),en:e.en})),u=S(e?.contact),d=u.socialIconColor?`style="--footer-social-color:${u.socialIconColor}"`:``;return`
     <footer class="site-footer" id="footer">
       <div class="container footer-islands">
         <div class="footer-island footer-island-main">
@@ -92,26 +92,26 @@
           </div>
 
           <div class="footer-contact-row">
-            ${O(c.socialLinks,l)}
-            <a class="footer-phone" href="${c.phoneTelHref}">
+            ${O(u.socialLinks,d)}
+            <a class="footer-phone" href="${u.phoneTelHref}">
               <span class="icon">${n.phone}</span>
-              <span dir="ltr">${C(c)}</span>
+              <span dir="ltr">${C(u)}</span>
             </a>
           </div>
 
           ${te(e)}
 
           <div class="footer-bottom">
-            <p>© ${t} ${f(a.fa,a.en)}</p>
+            <p>© ${t} ${f(s.fa,s.en)}</p>
           </div>
         </div>
 
-        ${s.length?`
+        ${l.length?`
         <div class="footer-island footer-island-seo">
           <div class="footer-seo-box" id="footer-seo-box">
             <h2 class="visually-hidden">${f(`درباره اسکریپت ${r.fa}`,`About ${r.en} Script`)}</h2>
             <div class="footer-seo-text" id="footer-seo-text">
-              ${s.map(e=>`<p>${f(e.fa,e.en)}</p>`).join(``)}
+              ${l.map(e=>`<p>${f(e.fa,e.en)}</p>`).join(``)}
             </div>
             <button type="button" class="footer-seo-toggle" id="footer-seo-toggle" aria-expanded="false">
               <span class="footer-seo-toggle-label">${f(`ادامه مطلب`,`Read more`)}</span>

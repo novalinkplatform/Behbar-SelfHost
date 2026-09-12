@@ -10,6 +10,7 @@ import {
 } from '../utils/api.ts';
 import type { FleetVehicle, StaffRecord } from '../utils/api.ts';
 import { ensureLanguageMode, applyLanguageVisibility } from '../utils/languageMode.ts';
+import { handleSaveButton } from '../utils/save-button.ts';
 
 interface VehicleType {
   id: string;
@@ -123,14 +124,14 @@ function renderForm(): string {
 
 function renderVehicleTypesPanel(): string {
   return `
-    <div id="vehicle-types-list"></div>
-    <button type="button" class="btn btn-secondary" id="vehicle-type-add-btn">
-      <span class="icon">${icons.plusCircle}</span>
-      افزودن وسیله
-    </button>
-    <div class="settings-panel-footer">
-      <button type="button" class="btn btn-primary" id="vehicle-type-save-btn">ذخیره وسیله‌ها</button>
+    <div class="card-header-action" style="margin-bottom: var(--space-4);">
+      <button type="button" class="btn btn-secondary btn-sm" id="vehicle-type-add-btn">
+        <span class="icon">${icons.plusCircle}</span>
+        افزودن وسیله
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" id="vehicle-type-save-btn">ذخیره وسیله‌ها</button>
     </div>
+    <div id="vehicle-types-list"></div>
   `;
 }
 
@@ -185,7 +186,10 @@ export function renderFleetView(): string {
       <p class="settings-saved-note" id="cities-saved-note" hidden>ذخیره شد.</p>
 
       <div class="editor-sidebar-card">
-        <h3>شهر مبدأ (مرکز ثابت)</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">شهر مبدأ (مرکز ثابت)</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="service_cities">ذخیره</button>
+        </div>
         <p class="settings-panel-hint">
           اگر اینجا شهری مشخص کنید، همان شهر در فرم ثبت درخواست به‌عنوان مبدأ از پیش انتخاب‌شده نمایش داده می‌شود
           (خدمات شما همیشه از همان شهر آغاز می‌شود). اگر خالی بگذارید، مشتری خودش مبدأ را از بین همه‌ی شهرهای ایران انتخاب می‌کند.
@@ -199,7 +203,10 @@ export function renderFleetView(): string {
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>پوشش شهرهای مقصد</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">پوشش شهرهای مقصد</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="service_cities">ذخیره</button>
+        </div>
         <div class="form-field" style="max-width: 280px">
           <label for="coverage-mode">مقصدهای قابل‌انتخاب برای مشتری</label>
           <select id="coverage-mode">
@@ -209,15 +216,11 @@ export function renderFleetView(): string {
         </div>
         <div id="destination-cities-section">
           <div id="cities-list"></div>
-          <button type="button" class="btn btn-secondary" id="city-add-btn">
+          <button type="button" class="btn btn-secondary btn-sm" id="city-add-btn">
             <span class="icon">${icons.plusCircle}</span>
             افزودن شهر
           </button>
         </div>
-      </div>
-
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-primary" data-save-setting="service_cities">ذخیره تنظیمات شهرها</button>
       </div>
     </div>
 
@@ -226,7 +229,10 @@ export function renderFleetView(): string {
       <p class="settings-saved-note" id="categories-saved-note" hidden>ذخیره شد.</p>
 
       <div class="editor-sidebar-card">
-        <h3>دسته‌بندی‌های خدمات</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">دسته‌بندی‌های خدمات</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="service_categories">ذخیره</button>
+        </div>
         <p class="settings-panel-hint">
           اگر کسب‌وکار شما فقط بخشی از این خدمات را ارائه می‌دهد، بقیه را غیرفعال کنید تا اصلاً به مشتری نشان داده نشوند.
         </p>
@@ -246,10 +252,6 @@ export function renderFleetView(): string {
           توجه: اگر یک دسته را فعال نگه دارید ولی در تب «تعریف وسیله» هیچ وسیله‌ی فعالی برایش نماند،
           آن دسته باز هم به‌صورت خودکار از فرم ثبت درخواست مشتری حذف می‌شود.
         </p>
-      </div>
-
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-primary" data-save-setting="service_categories">ذخیره دسته‌بندی‌ها</button>
       </div>
     </div>
   `;
@@ -397,10 +399,12 @@ export function initFleetView(): void {
     const btn = e.currentTarget as HTMLButtonElement;
     const savedNote = document.getElementById('vehicle-types-saved-note');
     const typesError = document.getElementById('vehicle-types-error');
-    btn.disabled = true;
+    if (typesError) typesError.hidden = true;
     try {
-      readVehicleTypesFromDom();
-      await updateSetting('vehicle_types', vehicleTypes);
+      await handleSaveButton(btn, async () => {
+        readVehicleTypesFromDom();
+        await updateSetting('vehicle_types', vehicleTypes);
+      });
       if (savedNote) {
         savedNote.hidden = false;
         window.setTimeout(() => (savedNote.hidden = true), 2500);
@@ -410,8 +414,6 @@ export function initFleetView(): void {
         typesError.hidden = false;
         typesError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
       }
-    } finally {
-      btn.disabled = false;
     }
   });
 
@@ -481,75 +483,73 @@ export function initFleetView(): void {
     renderCities();
   });
 
-  document.querySelector('[data-save-setting="service_cities"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    const savedNote = document.getElementById('cities-saved-note');
-    const citiesError = document.getElementById('cities-error');
-    btn.disabled = true;
-    try {
-      readCitiesFromDom();
-      originCity = {
-        city: (document.getElementById('origin-city-fa') as HTMLInputElement).value.trim(),
-        cityEn: (document.getElementById('origin-city-en') as HTMLInputElement).value.trim(),
-        province: (document.getElementById('origin-province-fa') as HTMLInputElement).value.trim(),
-        provinceEn: (document.getElementById('origin-province-en') as HTMLInputElement).value.trim(),
-      };
-      destinationCities = destinationCities.filter((c) => c.city.trim() !== '');
-      // internationalShippingEnabled دیگر اینجا ویرایش نمی‌شود (به تب «دسته‌بندی خدمات» منتقل شده)؛
-      // مقدار فعلی‌اش را از تنظیمات ذخیره‌شده نگه می‌داریم تا این ذخیره آن را پاک نکند.
-      const existingCities = (settings.service_cities as Record<string, unknown> | undefined) ?? {};
-      const payload = {
-        originCity: originCity.city ? originCity : null,
-        coverageMode,
-        destinationCities,
-        internationalShippingEnabled: Boolean(existingCities.internationalShippingEnabled),
-      };
-      await updateSetting('service_cities', payload);
-      settings.service_cities = payload;
-      renderCities();
-      if (savedNote) {
-        savedNote.hidden = false;
-        window.setTimeout(() => (savedNote.hidden = true), 2500);
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="service_cities"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const savedNote = document.getElementById('cities-saved-note');
+      const citiesError = document.getElementById('cities-error');
+      if (citiesError) citiesError.hidden = true;
+      try {
+        await handleSaveButton(btn, async () => {
+          readCitiesFromDom();
+          originCity = {
+            city: (document.getElementById('origin-city-fa') as HTMLInputElement).value.trim(),
+            cityEn: (document.getElementById('origin-city-en') as HTMLInputElement).value.trim(),
+            province: (document.getElementById('origin-province-fa') as HTMLInputElement).value.trim(),
+            provinceEn: (document.getElementById('origin-province-en') as HTMLInputElement).value.trim(),
+          };
+          destinationCities = destinationCities.filter((c) => c.city.trim() !== '');
+          const existingCities = (settings.service_cities as Record<string, unknown> | undefined) ?? {};
+          const payload = {
+            originCity: originCity.city ? originCity : null,
+            coverageMode,
+            destinationCities,
+            internationalShippingEnabled: Boolean(existingCities.internationalShippingEnabled),
+          };
+          await updateSetting('service_cities', payload);
+          settings.service_cities = payload;
+          renderCities();
+        });
+        if (savedNote) {
+          savedNote.hidden = false;
+          window.setTimeout(() => (savedNote.hidden = true), 2500);
+        }
+      } catch (err) {
+        if (citiesError) {
+          citiesError.hidden = false;
+          citiesError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
+        }
       }
-    } catch (err) {
-      if (citiesError) {
-        citiesError.hidden = false;
-        citiesError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
-      }
-    } finally {
-      btn.disabled = false;
-    }
+    });
   });
 
   // ----- دسته‌بندی خدمات -----
-  document.querySelector('[data-save-setting="service_categories"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    const savedNote = document.getElementById('categories-saved-note');
-    const categoriesError = document.getElementById('categories-error');
-    btn.disabled = true;
-    try {
-      categoryDomesticEnabled = (document.getElementById('category-domestic-enabled') as HTMLInputElement).checked;
-      categoryMovingEnabled = (document.getElementById('category-moving-enabled') as HTMLInputElement).checked;
-      internationalShippingEnabled = (document.getElementById('international-shipping-enabled') as HTMLInputElement).checked;
-      await updateSetting('service_categories', { domestic: categoryDomesticEnabled, moving: categoryMovingEnabled });
-      // بارهای ترانزیت هنوز از طریق کلید service_cities کنترل می‌شود (چون همان پرچم فیلد کشور را هم
-      // نشان می‌دهد)، فقط این‌جا (تب دسته‌بندی خدمات) ویرایش می‌شود؛ بقیه‌ی داده‌ی شهرها دست‌نخورده می‌ماند.
-      const existingCities = (settings.service_cities as Record<string, unknown> | undefined) ?? {};
-      const citiesPayload = { ...existingCities, internationalShippingEnabled };
-      await updateSetting('service_cities', citiesPayload);
-      settings.service_cities = citiesPayload;
-      if (savedNote) {
-        savedNote.hidden = false;
-        window.setTimeout(() => (savedNote.hidden = true), 2500);
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="service_categories"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const savedNote = document.getElementById('categories-saved-note');
+      const categoriesError = document.getElementById('categories-error');
+      if (categoriesError) categoriesError.hidden = true;
+      try {
+        await handleSaveButton(btn, async () => {
+          categoryDomesticEnabled = (document.getElementById('category-domestic-enabled') as HTMLInputElement).checked;
+          categoryMovingEnabled = (document.getElementById('category-moving-enabled') as HTMLInputElement).checked;
+          internationalShippingEnabled = (document.getElementById('international-shipping-enabled') as HTMLInputElement).checked;
+          await updateSetting('service_categories', { domestic: categoryDomesticEnabled, moving: categoryMovingEnabled });
+          const existingCities = (settings.service_cities as Record<string, unknown> | undefined) ?? {};
+          const citiesPayload = { ...existingCities, internationalShippingEnabled };
+          await updateSetting('service_cities', citiesPayload);
+          settings.service_cities = citiesPayload;
+        });
+        if (savedNote) {
+          savedNote.hidden = false;
+          window.setTimeout(() => (savedNote.hidden = true), 2500);
+        }
+      } catch (err) {
+        if (categoriesError) {
+          categoriesError.hidden = false;
+          categoriesError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
+        }
       }
-    } catch (err) {
-      if (categoriesError) {
-        categoriesError.hidden = false;
-        categoriesError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
-      }
-    } finally {
-      btn.disabled = false;
-    }
+    });
   });
 
   // این dropdown فقط انواع وسیله‌ی «فعال» (تعریف‌شده در تب «تعریف وسیله») را پیشنهاد می‌دهد —

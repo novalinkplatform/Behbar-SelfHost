@@ -119,3 +119,30 @@ p {
   font-size: 0.82rem;
   color: var(--danger);
 }
+
+.card-header-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.card-header-action h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.btn-saved {
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn-saved:hover {
+  background-color: #15803d !important;
+  border-color: #15803d !important;
+}

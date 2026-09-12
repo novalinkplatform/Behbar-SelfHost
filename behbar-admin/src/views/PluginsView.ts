@@ -1,4 +1,5 @@
 import { fetchPlugins, updateSetting, testAiConnection, testSmsConnection } from '../utils/api.ts';
+import { handleSaveButton } from '../utils/save-button.ts';
 
 interface AiProviderLastCheck {
   ok: boolean;
@@ -30,46 +31,84 @@ interface LegacyAiAssistantConfig {
   model?: string;
 }
 
-type AiProviderId = 'gemini' | 'deepseek' | 'openai' | 'openrouter';
-type AiProvidersConfig = Partial<Record<AiProviderId, AiProviderEntry>>;
+type AiProviderId = string;
+type AiProvidersConfig = Record<string, AiProviderEntry>;
 
-// «همکاری» چند ارائه‌دهنده‌ی هم‌زمان‌فعال به شکل زنجیره‌ی جایگزین (fallback chain) در بک‌اند پیاده
-// شده: به ترتیب اولویت امتحان می‌شوند، اولین پاسخ موفق برگردانده می‌شود و بقیه صدا زده نمی‌شوند —
-// پس هیچ‌وقت دو ارائه‌دهنده هم‌زمان با هم «تداخل» نمی‌کنند، فقط اگر یکی جواب نداد، خودکار به بعدی
-// می‌رود. این‌جا فقط فعال/غیرفعال‌کردن و اولویت هر کدام تنظیم می‌شود.
-const AI_PROVIDERS: { id: AiProviderId; label: string }[] = [
-  { id: 'gemini', label: 'Gemini' },
-  { id: 'deepseek', label: 'DeepSeek' },
-  { id: 'openai', label: 'ChatGPT (OpenAI)' },
-  { id: 'openrouter', label: 'OpenRouter' },
+const AI_PROVIDERS: Array<{ id: string; label: string; defaultModel: string; docUrl: string; placeholder: string }> = [
+  {
+    id: 'gemini',
+    label: 'Google Gemini',
+    defaultModel: 'gemini-1.5-flash',
+    docUrl: 'https://aistudio.google.com/app/apikey',
+    placeholder: 'AIzaSy...',
+  },
+  {
+    id: 'openai',
+    label: 'OpenAI (ChatGPT)',
+    defaultModel: 'gpt-4o-mini',
+    docUrl: 'https://platform.openai.com/api-keys',
+    placeholder: 'sk-proj-...',
+  },
+  {
+    id: 'claude',
+    label: 'Anthropic Claude',
+    defaultModel: 'claude-3-5-haiku-20241022',
+    docUrl: 'https://console.anthropic.com/settings/keys',
+    placeholder: 'sk-ant-...',
+  },
+  {
+    id: 'deepseek',
+    label: 'DeepSeek',
+    defaultModel: 'deepseek-chat',
+    docUrl: 'https://platform.deepseek.com/api_keys',
+    placeholder: 'sk-...',
+  },
+  {
+    id: 'groq',
+    label: 'Groq',
+    defaultModel: 'llama-3.1-70b-versatile',
+    docUrl: 'https://console.groq.com/keys',
+    placeholder: 'gsk_...',
+  },
 ];
 
-function renderAiProviderCard(p: { id: AiProviderId; label: string }): string {
+function aiEntryFor(id: string, config: AiProvidersConfig | undefined): AiProviderEntry {
+  const def = AI_PROVIDERS.find((p) => p.id === id);
+  const fallbackPriority = (AI_PROVIDERS.findIndex((p) => p.id === id) + 1) || 1;
+  return config?.[id] ?? { enabled: false, apiKey: '', model: def?.defaultModel ?? '', priority: fallbackPriority };
+}
+
+function renderAiProviderCard(p: (typeof AI_PROVIDERS)[number]): string {
   return `
-    <div class="editor-sidebar-card" data-ai-provider-card="${p.id}">
+    <div class="editor-sidebar-card ai-provider-card" data-ai-provider-card="${p.id}">
       <div class="plugin-card-head">
         <h3>${p.label}</h3>
-        <label class="settings-inline-toggle"><input type="checkbox" data-ai-field="enabled" /> فعال</label>
+        <label class="settings-inline-toggle">
+          <input type="checkbox" data-ai-field="enabled" /> فعال
+        </label>
       </div>
       <div class="settings-form-grid">
         <div class="form-field">
-          <label>کلید API</label>
-          <input type="text" dir="ltr" data-ai-field="apiKey" placeholder="sk-..." />
+          <label>کلید API (API Key)</label>
+          <input type="password" data-ai-field="apiKey" dir="ltr" autocomplete="off" placeholder="${p.placeholder}" />
         </div>
         <div class="form-field">
-          <label>مدل (اختیاری)</label>
-          <input type="text" dir="ltr" data-ai-field="model" placeholder="پیش‌فرض کافی است" />
+          <label>مدل (Model)</label>
+          <input type="text" data-ai-field="model" dir="ltr" placeholder="${p.defaultModel}" />
         </div>
         <div class="form-field">
-          <label>اولویت</label>
-          <input type="number" min="1" step="1" data-ai-field="priority" style="max-width: 90px" />
+          <label>اولویت استفاده</label>
+          <input type="number" data-ai-field="priority" min="1" max="10" placeholder="1" />
         </div>
       </div>
-      <div class="editor-header-actions" style="margin-top: var(--space-3)">
-        <button type="button" class="btn btn-secondary btn-sm" data-ai-test-btn>تست اتصال</button>
-        <span data-ai-status></span>
+      <div class="ai-provider-actions">
+        <button type="button" class="btn btn-secondary btn-sm" data-ai-test="${p.id}">تست اتصال</button>
+        <span data-ai-status="${p.id}"></span>
       </div>
-      <p class="error-text" data-ai-error hidden></p>
+      <p class="error-text" data-ai-error="${p.id}" hidden></p>
+      <p class="settings-panel-hint">
+        کلید API را از پنل کاربری <a href="${p.docUrl}" target="_blank" rel="noopener">${p.label}</a> دریافت کنید.
+      </p>
     </div>
   `;
 }
@@ -83,9 +122,12 @@ export function renderPluginsView(): string {
     <p class="settings-saved-note" id="plugins-saved-note" hidden>ذخیره شد.</p>
 
     <div class="editor-sidebar-card">
-      <div class="plugin-card-head">
-        <h3>پیامک (ملی‌پیامک)</h3>
-        <label class="settings-inline-toggle"><input type="checkbox" id="settings-sms-enabled" /> فعال</label>
+      <div class="card-header-action">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h3 style="margin: 0;">پیامک (ملی‌پیامک)</h3>
+          <label class="settings-inline-toggle" style="margin: 0;"><input type="checkbox" id="settings-sms-enabled" /> فعال</label>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="settings-sms-save-btn">ذخیره</button>
       </div>
       <p class="settings-panel-hint">نام کاربری و رمز عبور همان حساب پنل ملی‌پیامک شماست (نه یک توکن جدا).</p>
       <div class="settings-form-grid">
@@ -107,19 +149,19 @@ export function renderPluginsView(): string {
         <button type="button" class="btn btn-secondary btn-sm" id="settings-sms-test-btn">تست اتصال</button>
         <span id="settings-sms-status"></span>
       </div>
-      <p class="settings-panel-hint">«تست اتصال» فقط نام‌کاربری/رمز را ذخیره می‌کند (برای بررسی اعتبار)؛ شناسه‌ی پترن و بقیه‌ی تنظیمات این کارت را با دکمه‌ی زیر ذخیره کنید.</p>
+      <p class="settings-panel-hint">«تست اتصال» فقط نام‌کاربری/رمز را ذخیره می‌کند (برای بررسی اعتبار)؛ شناسه‌ی پترن و بقیه‌ی تنظیمات این کارت را با دکمه‌ی بالا ذخیره کنید.</p>
       <p class="error-text" id="settings-sms-test-error" hidden></p>
-      <label class="settings-inline-toggle">
+      <label class="settings-inline-toggle" style="margin-top: var(--space-3);">
         <input type="checkbox" id="settings-sms-auto-notify" />
         ارسال خودکار پیامک به مشتری در مراحل مهم (هماهنگی زمان، شروع کار، پایان کار، لغو درخواست)
       </label>
-      <div class="editor-header-actions" style="margin-top: var(--space-3)">
-        <button type="button" class="btn btn-primary btn-sm" id="settings-sms-save-btn">ذخیره پیامک</button>
-        <span class="settings-saved-note" id="settings-sms-saved-note" hidden>ذخیره شد.</span>
-      </div>
+      <span class="settings-saved-note" id="settings-sms-saved-note" hidden>ذخیره شد.</span>
     </div>
 
-    <h2 class="editor-section-title">دستیار هوش مصنوعی</h2>
+    <div class="card-header-action" style="margin-top: var(--space-5); margin-bottom: var(--space-2);">
+      <h2 class="editor-section-title" style="margin: 0;">دستیار هوش مصنوعی</h2>
+      <button type="button" class="btn btn-primary btn-sm" id="plugins-save-btn">ذخیره افزونه‌ها</button>
+    </div>
     <p class="settings-panel-hint">
       هر ارائه‌دهنده مستقل است — می‌توانید فقط یکی را فعال کنید یا چند تا را هم‌زمان. اگر چند تا فعال باشند، طبق
       «اولویت» (عدد کوچک‌تر زودتر) امتحان می‌شوند: به محض جواب‌گرفتن از یکی، بقیه اصلاً صدا زده نمی‌شوند؛ فقط اگر
@@ -127,10 +169,6 @@ export function renderPluginsView(): string {
       نه رقابت هم‌زمان چند تا با هم. کلیدها فقط برای حساب شمایند و جایی به‌جز این سرور فرستاده نمی‌شوند.
     </p>
     ${AI_PROVIDERS.map(renderAiProviderCard).join('')}
-
-    <div class="settings-panel-footer">
-      <button type="button" class="btn btn-primary" id="plugins-save-btn">ذخیره افزونه‌ها</button>
-    </div>
   `;
 }
 
@@ -177,10 +215,6 @@ export function initPluginsView(): void {
   }
 
   let plugins: Record<string, unknown> = {};
-
-  function aiEntryFor(id: AiProviderId, providersConfig: AiProvidersConfig): AiProviderEntry {
-    return providersConfig[id] ?? { enabled: false, apiKey: '', model: '', priority: AI_PROVIDERS.findIndex((p) => p.id === id) + 1 };
-  }
 
   function renderAll(): void {
     const sms = (plugins.sms as SmsPluginConfig | undefined) ?? {
@@ -294,80 +328,76 @@ export function initPluginsView(): void {
   // ذخیره‌ی جدا و کنار همین کارت — چون «تست اتصال» فقط نام‌کاربری/رمز را ذخیره می‌کند، نه شناسه‌ی
   // پترن یا تیک‌های فعال/ارسال‌خودکار را؛ منتظرماندن برای دکمه‌ی سراسری «ذخیره افزونه‌ها» (زیر همه‌ی
   // کارت‌های هوش مصنوعی) باعث می‌شد بعضی وقت‌ها شناسه‌ی پترن اصلاً ذخیره نشود.
-  document.getElementById('settings-sms-save-btn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('settings-sms-save-btn') as HTMLButtonElement;
-    const savedNoteEl = document.getElementById('settings-sms-saved-note')!;
-    const testError = document.getElementById('settings-sms-test-error')!;
-    const bodyId = (document.getElementById('settings-sms-body-id') as HTMLInputElement).value.trim();
-    testError.hidden = true;
-    savedNoteEl.hidden = true;
-    if (!bodyId) {
-      testError.hidden = false;
-      testError.textContent = 'شناسه‌ی پترن الزامی است.';
-      return;
-    }
-    const existingSms = (plugins.sms as SmsPluginConfig | undefined) ?? ({} as SmsPluginConfig);
-    const nextSms: SmsPluginConfig = {
-      ...existingSms,
-      enabled: (document.getElementById('settings-sms-enabled') as HTMLInputElement).checked,
-      username: (document.getElementById('settings-sms-username') as HTMLInputElement).value.trim(),
-      password: (document.getElementById('settings-sms-password') as HTMLInputElement).value,
-      bodyId,
-      autoNotifyStatusChange: (document.getElementById('settings-sms-auto-notify') as HTMLInputElement).checked,
-    };
-    btn.disabled = true;
-    try {
-      await updateSetting('plugins', { ...plugins, sms: nextSms });
-      plugins.sms = nextSms;
-      savedNoteEl.hidden = false;
-      window.setTimeout(() => (savedNoteEl.hidden = true), 2500);
-    } catch (err) {
-      testError.hidden = false;
-      testError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
-    } finally {
-      btn.disabled = false;
-    }
-  });
+  const smsSaveBtn = document.getElementById('settings-sms-save-btn') as HTMLButtonElement | null;
+  if (smsSaveBtn) {
+    smsSaveBtn.addEventListener('click', async () => {
+      const testError = document.getElementById('settings-sms-test-error')!;
+      const bodyId = (document.getElementById('settings-sms-body-id') as HTMLInputElement).value.trim();
+      testError.hidden = true;
+      if (!bodyId) {
+        testError.hidden = false;
+        testError.textContent = 'شناسه‌ی پترن الزامی است.';
+        return;
+      }
+      const existingSms = (plugins.sms as SmsPluginConfig | undefined) ?? ({} as SmsPluginConfig);
+      const nextSms: SmsPluginConfig = {
+        ...existingSms,
+        enabled: (document.getElementById('settings-sms-enabled') as HTMLInputElement).checked,
+        username: (document.getElementById('settings-sms-username') as HTMLInputElement).value.trim(),
+        password: (document.getElementById('settings-sms-password') as HTMLInputElement).value,
+        bodyId,
+        autoNotifyStatusChange: (document.getElementById('settings-sms-auto-notify') as HTMLInputElement).checked,
+      };
+      try {
+        await handleSaveButton(smsSaveBtn, async () => {
+          await updateSetting('plugins', { ...plugins, sms: nextSms });
+          plugins.sms = nextSms;
+        });
+      } catch (err) {
+        testError.hidden = false;
+        testError.textContent = err instanceof Error ? err.message : 'ذخیره ناموفق بود.';
+      }
+    });
+  }
 
   saveBtn.addEventListener('click', async () => {
-    saveBtn.disabled = true;
     try {
-      const providersConfig: AiProvidersConfig = { ...((plugins.aiProviders as AiProvidersConfig | undefined) ?? {}) };
-      AI_PROVIDERS.forEach((p) => {
-        const card = document.querySelector<HTMLElement>(`[data-ai-provider-card="${p.id}"]`);
-        if (!card) return;
-        const existing = aiEntryFor(p.id, providersConfig);
-        providersConfig[p.id] = {
-          // lastCheck اینجا حفظ می‌شود — این دکمه فقط ذخیره می‌کند، تست نمی‌زند.
-          lastCheck: existing.lastCheck,
-          enabled: (card.querySelector('[data-ai-field="enabled"]') as HTMLInputElement).checked,
-          apiKey: (card.querySelector('[data-ai-field="apiKey"]') as HTMLInputElement).value.trim(),
-          model: (card.querySelector('[data-ai-field="model"]') as HTMLInputElement).value.trim(),
-          priority: Number((card.querySelector('[data-ai-field="priority"]') as HTMLInputElement).value) || AI_PROVIDERS.findIndex((x) => x.id === p.id) + 1,
-        };
-      });
+      await handleSaveButton(saveBtn, async () => {
+        const providersConfig: AiProvidersConfig = { ...((plugins.aiProviders as AiProvidersConfig | undefined) ?? {}) };
+        AI_PROVIDERS.forEach((p) => {
+          const card = document.querySelector<HTMLElement>(`[data-ai-provider-card="${p.id}"]`);
+          if (!card) return;
+          const existing = aiEntryFor(p.id, providersConfig);
+          providersConfig[p.id] = {
+            // lastCheck اینجا حفظ می‌شود — این دکمه فقط ذخیره می‌کند، تست نمی‌زند.
+            lastCheck: existing.lastCheck,
+            enabled: (card.querySelector('[data-ai-field="enabled"]') as HTMLInputElement).checked,
+            apiKey: (card.querySelector('[data-ai-field="apiKey"]') as HTMLInputElement).value.trim(),
+            model: (card.querySelector('[data-ai-field="model"]') as HTMLInputElement).value.trim(),
+            priority: Number((card.querySelector('[data-ai-field="priority"]') as HTMLInputElement).value) || AI_PROVIDERS.findIndex((x) => x.id === p.id) + 1,
+          };
+        });
 
-      const existingSms = (plugins.sms as SmsPluginConfig | undefined) ?? ({} as SmsPluginConfig);
-      plugins = {
-        ...plugins,
-        sms: {
-          // lastCheck اینجا حفظ می‌شود — این دکمه فقط ذخیره می‌کند، تست نمی‌زند.
-          lastCheck: existingSms.lastCheck,
-          enabled: (document.getElementById('settings-sms-enabled') as HTMLInputElement).checked,
-          username: (document.getElementById('settings-sms-username') as HTMLInputElement).value.trim(),
-          password: (document.getElementById('settings-sms-password') as HTMLInputElement).value,
-          bodyId: (document.getElementById('settings-sms-body-id') as HTMLInputElement).value.trim(),
-          autoNotifyStatusChange: (document.getElementById('settings-sms-auto-notify') as HTMLInputElement).checked,
-        },
-        aiProviders: providersConfig,
-      };
-      delete plugins.aiAssistant; // شکل قدیمی تک‌ارائه‌دهنده‌ای دیگر لازم نیست؛ همه‌چیز در aiProviders است.
-      await updateSetting('plugins', plugins);
-      showSaved();
+        const existingSms = (plugins.sms as SmsPluginConfig | undefined) ?? ({} as SmsPluginConfig);
+        plugins = {
+          ...plugins,
+          sms: {
+            // lastCheck اینجا حفظ می‌شود — این دکمه فقط ذخیره می‌کند، تست نمی‌زند.
+            lastCheck: existingSms.lastCheck,
+            enabled: (document.getElementById('settings-sms-enabled') as HTMLInputElement).checked,
+            username: (document.getElementById('settings-sms-username') as HTMLInputElement).value.trim(),
+            password: (document.getElementById('settings-sms-password') as HTMLInputElement).value,
+            bodyId: (document.getElementById('settings-sms-body-id') as HTMLInputElement).value.trim(),
+            autoNotifyStatusChange: (document.getElementById('settings-sms-auto-notify') as HTMLInputElement).checked,
+          },
+          aiProviders: providersConfig,
+        };
+        delete plugins.aiAssistant; // شکل قدیمی تک‌ارائه‌دهنده‌ای دیگر لازم نیست؛ همه‌چیز در aiProviders است.
+        await updateSetting('plugins', plugins);
+        showSaved();
+      });
     } catch (err) {
       showError(err);
-    } finally {
-      saveBtn.disabled = false;
     }
   });
 

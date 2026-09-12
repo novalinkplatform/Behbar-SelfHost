@@ -3253,16 +3253,27 @@ async function publicGetSettings(env: Env, origin: string | null): Promise<Respo
   }
 
   if (env.RUNTIME === 'selfhost') {
+    const siteNameObj = settings.site_name as { fa?: string; en?: string } | undefined;
+    const siteNameFa = siteNameObj?.fa?.trim();
+    const siteNameEn = siteNameObj?.en?.trim();
     const currentFooter = settings.footer as { copyright?: { fa?: string; en?: string }; seoParagraphs?: { fa?: string }[] } | undefined;
     if (!currentFooter || currentFooter.seoParagraphs?.[0]?.fa?.includes('ژاکت') || currentFooter.seoParagraphs?.[0]?.fa?.includes('اسکریپت')) {
+      const defaultFa = siteNameFa ? `همه حقوق برای ${siteNameFa} محفوظ است.` : 'همه حقوق محفوظ است.';
+      const defaultEn = siteNameEn ? `All rights reserved for ${siteNameEn}.` : 'All rights reserved.';
+      let customFa = currentFooter?.copyright?.fa && !currentFooter.copyright.fa.includes('ژاکت') ? currentFooter.copyright.fa : defaultFa;
+      if (siteNameFa && siteNameFa !== 'بهبار' && customFa.includes('بهبار')) {
+        customFa = customFa.replace(/به‌بار|به بار|بهبار/g, siteNameFa);
+      }
       const emptyFooter = {
         seoParagraphs: [],
         copyright: {
-          fa: currentFooter?.copyright?.fa && !currentFooter.copyright.fa.includes('ژاکت') ? currentFooter.copyright.fa : 'همه حقوق محفوظ است.',
-          en: currentFooter?.copyright?.en ?? 'All rights reserved.',
+          fa: customFa,
+          en: currentFooter?.copyright?.en ?? defaultEn,
         },
       };
       settings.footer = emptyFooter;
+    } else if (currentFooter?.copyright?.fa && siteNameFa && siteNameFa !== 'بهبار' && currentFooter.copyright.fa.includes('بهبار')) {
+      currentFooter.copyright.fa = currentFooter.copyright.fa.replace(/به‌بار|به بار|بهبار/g, siteNameFa);
     }
   } else {
     const currentFooter = settings.footer as { copyright?: { fa?: string }; seoParagraphs?: { fa?: string }[] } | undefined;

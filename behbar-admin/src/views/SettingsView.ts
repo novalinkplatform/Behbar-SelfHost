@@ -19,6 +19,7 @@ import { ensureLanguageMode, applyLanguageVisibility } from '../utils/languageMo
 import { renderPagesListView, initPagesListView } from './PagesListView.ts';
 import { API_BASE_URL } from '../data/config.ts';
 import type { Permission } from '../utils/auth.ts';
+import { handleSaveButton } from '../utils/save-button.ts';
 
 
 interface SocialLinkSetting {
@@ -184,7 +185,10 @@ export function renderSettingsView(): string {
 
     <div class="settings-panel" data-settings-panel="language" ${hiddenAttr('language')}>
       <div class="editor-sidebar-card">
-        <h3>زبان سایت</h3>
+        <div class="card-header-action">
+          <h3>زبان سایت</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="language_mode">ذخیره</button>
+        </div>
         <p class="settings-panel-hint">
           اگر سایت فقط یک زبانه است، فیلد زبان دیگر هم روی سایت (دکمه تعویض زبان) و هم در همین فرم‌های پنل مدیریت مخفی می‌شود.
         </p>
@@ -196,22 +200,26 @@ export function renderSettingsView(): string {
             <option value="en">فقط انگلیسی</option>
           </select>
         </div>
-        <button type="button" class="btn btn-primary" data-save-setting="language_mode">ذخیره زبان سایت</button>
       </div>
     </div>
 
     <div class="settings-panel" data-settings-panel="general" ${hiddenAttr('general')}>
       <div class="editor-sidebar-card">
-        <h3>نام سایت</h3>
+        <div class="card-header-action">
+          <h3>نام سایت</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="site_name">ذخیره</button>
+        </div>
         <div class="settings-form-grid">
           <div class="form-field" data-i18n="fa"><label for="settings-site-name-fa">فارسی</label><input type="text" id="settings-site-name-fa" /></div>
           <div class="form-field" data-i18n="en"><label for="settings-site-name-en">انگلیسی</label><input type="text" id="settings-site-name-en" dir="ltr" /></div>
         </div>
-        <button type="button" class="btn btn-primary" data-save-setting="site_name">ذخیره نام سایت</button>
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>لوگو و فاوآیکن</h3>
+        <div class="card-header-action">
+          <h3>لوگو و فاوآیکن</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="branding">ذخیره</button>
+        </div>
         <p class="settings-panel-hint">
           اگر خالی بگذارید، لوگوی پیش‌فرض بهبار (در هدر، فوتر، فاوآیکن و پنل مدیریت) استفاده می‌شود.
           برای لوگوی خودتان، آدرس یک تصویر مربعی (ترجیحاً SVG یا PNG با پس‌زمینه) وارد کنید.
@@ -237,11 +245,13 @@ export function renderSettingsView(): string {
           </div>
         </div>
         <p class="error-text" id="settings-branding-upload-error" hidden></p>
-        <button type="button" class="btn btn-primary" data-save-setting="branding">ذخیره لوگو</button>
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>شعار و پیام اصلی سایت (هیرو)</h3>
+        <div class="card-header-action">
+          <h3>شعار و پیام اصلی سایت (هیرو)</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="hero_slogan">ذخیره</button>
+        </div>
         <p class="settings-panel-hint">
           پیام و متن خوش‌آمدگویی که در بالای صفحه اصلی کنار فرم استعلام قیمت نمایش داده می‌شود.
         </p>
@@ -271,23 +281,27 @@ export function renderSettingsView(): string {
             <textarea id="settings-hero-slogan-subtitle-en" rows="2" dir="ltr" placeholder="Submit your request for moving or freight; we'll get in touch with you as quickly as possible."></textarea>
           </div>
         </div>
-        <button type="button" class="btn btn-primary" style="margin-top: var(--space-3)" data-save-setting="hero_slogan">ذخیره شعار سایت</button>
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>متن فوتر (سئو)</h3>
+        <div class="card-header-action">
+          <h3>متن فوتر (سئو) و کپی‌رایت</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="footer">ذخیره</button>
+        </div>
         <div id="settings-footer-paragraphs"></div>
         <div class="settings-form-grid" style="margin-top: var(--space-4)">
           <div class="form-field" data-i18n="fa"><label for="settings-copyright-fa">متن کپی‌رایت (فارسی)</label><input type="text" id="settings-copyright-fa" /></div>
           <div class="form-field" data-i18n="en"><label for="settings-copyright-en">متن کپی‌رایت (انگلیسی)</label><input type="text" id="settings-copyright-en" dir="ltr" /></div>
         </div>
-        <button type="button" class="btn btn-primary" data-save-setting="footer">ذخیره فوتر</button>
       </div>
     </div>
 
     <div class="settings-panel" data-settings-panel="contact" ${hiddenAttr('contact')}>
       <div class="editor-sidebar-card">
-        <h3>شماره تماس</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">شماره تماس</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="contact">ذخیره</button>
+        </div>
         <div class="settings-form-grid">
           <div class="form-field">
             <label for="settings-phone-display">شماره تماس (نمایشی)</label>
@@ -301,7 +315,10 @@ export function renderSettingsView(): string {
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>شبکه‌های اجتماعی</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">شبکه‌های اجتماعی</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="contact">ذخیره</button>
+        </div>
         <div class="form-field" style="max-width: 260px">
           <label for="social-color-hex">رنگ آیکون‌ها (اختیاری)</label>
           <div class="theme-color-input-row">
@@ -317,7 +334,10 @@ export function renderSettingsView(): string {
       </div>
 
       <div class="editor-sidebar-card">
-        <h3>دکمه‌های تماس و چت</h3>
+        <div class="card-header-action">
+          <h3 style="margin: 0;">دکمه‌های تماس و چت</h3>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="contact">ذخیره</button>
+        </div>
         <div class="form-field">
           <label for="theme-quick-actions-style">نحوه نمایش</label>
           <select id="theme-quick-actions-style">
@@ -327,14 +347,13 @@ export function renderSettingsView(): string {
         </div>
       </div>
 
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-primary" data-save-setting="contact">ذخیره تماس و شبکه‌های اجتماعی</button>
-      </div>
-
       <div class="editor-sidebar-card">
-        <div class="plugin-card-head">
-          <h3>دکمه‌های دانلود اپلیکیشن</h3>
-          <label class="settings-inline-toggle"><input type="checkbox" id="applinks-enabled" /> فعال</label>
+        <div class="card-header-action">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h3 style="margin: 0;">دکمه‌های دانلود اپلیکیشن</h3>
+            <label class="settings-inline-toggle" style="margin: 0;"><input type="checkbox" id="applinks-enabled" /> فعال</label>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="app_links">ذخیره</button>
         </div>
         <p class="settings-panel-hint">اگر اپلیکیشن موبایل دارید، دکمه‌های دانلود آن در فوتر سایت نمایش داده می‌شود.</p>
         <div id="app-links-list"></div>
@@ -342,15 +361,15 @@ export function renderSettingsView(): string {
           <span class="icon">${icons.plusCircle}</span>
           افزودن لینک اپلیکیشن
         </button>
-        <div class="settings-panel-footer">
-          <button type="button" class="btn btn-primary" data-save-setting="app_links">ذخیره دکمه‌های دانلود اپ</button>
-        </div>
       </div>
 
       <div class="editor-sidebar-card">
-        <div class="plugin-card-head">
-          <h3>مجوزها و نمادهای اعتماد</h3>
-          <label class="settings-inline-toggle"><input type="checkbox" id="certifications-enabled" /> فعال</label>
+        <div class="card-header-action">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <h3 style="margin: 0;">مجوزها و نمادهای اعتماد</h3>
+            <label class="settings-inline-toggle" style="margin: 0;"><input type="checkbox" id="certifications-enabled" /> فعال</label>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="certifications">ذخیره</button>
         </div>
         <p class="settings-panel-hint">مثلاً نماد اعتماد الکترونیکی یا ساماندهی؛ لینک تصویر نماد و لینک صفحه تایید را وارد کنید.</p>
         <div id="certifications-list"></div>
@@ -358,19 +377,29 @@ export function renderSettingsView(): string {
           <span class="icon">${icons.plusCircle}</span>
           افزودن مجوز
         </button>
-        <div class="settings-panel-footer">
-          <button type="button" class="btn btn-primary" data-save-setting="certifications">ذخیره مجوزها</button>
-        </div>
       </div>
     </div>
 
 
     <div class="settings-panel" data-settings-panel="theme" ${hiddenAttr('theme')}>
+      <div class="card-header-action" style="background: var(--surface); padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+        <div>
+          <h3 style="margin: 0; font-size: 1.05rem;">تنظیمات رنگ‌بندی و تم</h3>
+          <p class="settings-panel-hint" style="margin: 4px 0 0 0;">شخصی‌سازی پالت رنگی هدر، دکمه‌ها و عناصر سایت</p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn btn-secondary btn-sm" id="theme-reset-btn">بازگردانی به پیش‌فرض</button>
+          <button type="button" class="btn btn-primary btn-sm" data-save-setting="theme">ذخیره</button>
+        </div>
+      </div>
       ${Array.from(new Set(THEME_FIELDS.map((f) => f.group)))
         .map(
           (group) => `
         <div class="editor-sidebar-card">
-          <h3>${group}</h3>
+          <div class="card-header-action">
+            <h3>${group}</h3>
+            <button type="button" class="btn btn-primary btn-sm" data-save-setting="theme">ذخیره</button>
+          </div>
           <div class="theme-color-grid">
             ${THEME_FIELDS.filter((f) => f.group === group)
               .map(
@@ -390,10 +419,6 @@ export function renderSettingsView(): string {
       `,
         )
         .join('')}
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-secondary" id="theme-reset-btn">بازگردانی به پیش‌فرض</button>
-        <button type="button" class="btn btn-primary" data-save-setting="theme">ذخیره رنگ‌بندی</button>
-      </div>
     </div>
 
     <div class="settings-panel" data-settings-panel="license" ${hiddenAttr('license')}>
@@ -575,8 +600,12 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
   // ----- general -----
   function renderGeneral(): void {
     const siteName = (settings.site_name as { fa: string; en: string } | undefined) ?? { fa: '', en: '' };
-    (document.getElementById('settings-site-name-fa') as HTMLInputElement).value = siteName.fa ?? '';
-    (document.getElementById('settings-site-name-en') as HTMLInputElement).value = siteName.en ?? '';
+    const siteNameFa = siteName.fa?.trim() || '';
+    const siteNameEn = siteName.en?.trim() || '';
+    const siteNameFaInput = document.getElementById('settings-site-name-fa') as HTMLInputElement;
+    const siteNameEnInput = document.getElementById('settings-site-name-en') as HTMLInputElement;
+    siteNameFaInput.value = siteNameFa;
+    siteNameEnInput.value = siteNameEn;
 
     (document.getElementById('settings-language-mode') as HTMLSelectElement).value = (settings.language_mode as string | undefined) ?? 'both';
 
@@ -601,8 +630,55 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
       )
       .join('');
     applyLanguageVisibility(container);
-    (document.getElementById('settings-copyright-fa') as HTMLInputElement).value = footer.copyright?.fa ?? '';
-    (document.getElementById('settings-copyright-en') as HTMLInputElement).value = footer.copyright?.en ?? '';
+
+    const defaultCopyrightFa = siteNameFa ? `همه حقوق برای ${siteNameFa} محفوظ است.` : 'همه حقوق محفوظ است.';
+    const defaultCopyrightEn = siteNameEn ? `All rights reserved for ${siteNameEn}.` : 'All rights reserved.';
+
+    const copyrightFaInput = document.getElementById('settings-copyright-fa') as HTMLInputElement;
+    const copyrightEnInput = document.getElementById('settings-copyright-en') as HTMLInputElement;
+
+    copyrightFaInput.placeholder = defaultCopyrightFa;
+    copyrightEnInput.placeholder = defaultCopyrightEn;
+
+    let savedCopyrightFa = footer.copyright?.fa?.trim() ?? '';
+    let savedCopyrightEn = footer.copyright?.en?.trim() ?? '';
+
+    if (siteNameFa && siteNameFa !== 'بهبار' && savedCopyrightFa && savedCopyrightFa.includes('بهبار')) {
+      savedCopyrightFa = savedCopyrightFa.replace(/بهبار/g, siteNameFa);
+    }
+    if (!savedCopyrightFa) {
+      savedCopyrightFa = defaultCopyrightFa;
+    }
+
+    if (siteNameEn && siteNameEn !== 'Behbar' && savedCopyrightEn && savedCopyrightEn.includes('Behbar')) {
+      savedCopyrightEn = savedCopyrightEn.replace(/Behbar/g, siteNameEn);
+    }
+    if (!savedCopyrightEn) {
+      savedCopyrightEn = defaultCopyrightEn;
+    }
+
+    copyrightFaInput.value = savedCopyrightFa;
+    copyrightEnInput.value = savedCopyrightEn;
+
+    siteNameFaInput.oninput = () => {
+      const curName = siteNameFaInput.value.trim();
+      const newDef = curName ? `همه حقوق برای ${curName} محفوظ است.` : 'همه حقوق محفوظ است.';
+      copyrightFaInput.placeholder = newDef;
+      const curVal = copyrightFaInput.value.trim();
+      if (!curVal || curVal.startsWith('همه حقوق برای ') || curVal === 'همه حقوق محفوظ است.') {
+        copyrightFaInput.value = newDef;
+      }
+    };
+
+    siteNameEnInput.oninput = () => {
+      const curName = siteNameEnInput.value.trim();
+      const newDef = curName ? `All rights reserved for ${curName}.` : 'All rights reserved.';
+      copyrightEnInput.placeholder = newDef;
+      const curVal = copyrightEnInput.value.trim();
+      if (!curVal || curVal.startsWith('All rights reserved for ') || curVal === 'All rights reserved.') {
+        copyrightEnInput.value = newDef;
+      }
+    };
 
     const heroSlogan = (settings.hero_slogan as {
       enabled?: boolean;
@@ -616,96 +692,104 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     (document.getElementById('settings-hero-slogan-subtitle-en') as HTMLTextAreaElement).value = heroSlogan.subtitle?.en ?? '';
   }
 
-  document.querySelector('[data-save-setting="site_name"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      await updateSetting('site_name', {
-        fa: (document.getElementById('settings-site-name-fa') as HTMLInputElement).value,
-        en: (document.getElementById('settings-site-name-en') as HTMLInputElement).value,
-      });
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="site_name"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const fa = (document.getElementById('settings-site-name-fa') as HTMLInputElement).value;
+          const en = (document.getElementById('settings-site-name-en') as HTMLInputElement).value;
+          await updateSetting('site_name', { fa, en });
+          settings.site_name = { fa, en };
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
-  document.querySelector('[data-save-setting="language_mode"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      await updateSetting('language_mode', (document.getElementById('settings-language-mode') as HTMLSelectElement).value);
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="language_mode"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const val = (document.getElementById('settings-language-mode') as HTMLSelectElement).value;
+          await updateSetting('language_mode', val);
+          settings.language_mode = val;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
-  document.querySelector('[data-save-setting="branding"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      await updateSetting('branding', {
-        logoUrl: (document.getElementById('settings-logo-url') as HTMLInputElement).value.trim(),
-        faviconUrl: (document.getElementById('settings-favicon-url') as HTMLInputElement).value.trim(),
-      });
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="branding"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const branding = {
+            logoUrl: (document.getElementById('settings-logo-url') as HTMLInputElement).value.trim(),
+            faviconUrl: (document.getElementById('settings-favicon-url') as HTMLInputElement).value.trim(),
+          };
+          await updateSetting('branding', branding);
+          settings.branding = branding;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
-  document.querySelector('[data-save-setting="footer"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      const paragraphNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-footer-paragraph]'));
-      const seoParagraphs = paragraphNodes.map((node) => ({
-        fa: node.querySelector<HTMLTextAreaElement>('[data-field="fa"]')!.value,
-        en: node.querySelector<HTMLTextAreaElement>('[data-field="en"]')!.value,
-      }));
-      await updateSetting('footer', {
-        seoParagraphs,
-        copyright: {
-          fa: (document.getElementById('settings-copyright-fa') as HTMLInputElement).value,
-          en: (document.getElementById('settings-copyright-en') as HTMLInputElement).value,
-        },
-      });
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="footer"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const paragraphNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-footer-paragraph]'));
+          const seoParagraphs = paragraphNodes.map((node) => ({
+            fa: node.querySelector<HTMLTextAreaElement>('[data-field="fa"]')!.value,
+            en: node.querySelector<HTMLTextAreaElement>('[data-field="en"]')!.value,
+          }));
+          const footerData = {
+            seoParagraphs,
+            copyright: {
+              fa: (document.getElementById('settings-copyright-fa') as HTMLInputElement).value,
+              en: (document.getElementById('settings-copyright-en') as HTMLInputElement).value,
+            },
+          };
+          await updateSetting('footer', footerData);
+          settings.footer = footerData;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
-  document.querySelector('[data-save-setting="hero_slogan"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      await updateSetting('hero_slogan', {
-        enabled: (document.getElementById('settings-hero-slogan-enabled') as HTMLInputElement).checked,
-        headline: {
-          fa: (document.getElementById('settings-hero-slogan-headline-fa') as HTMLInputElement).value.trim(),
-          en: (document.getElementById('settings-hero-slogan-headline-en') as HTMLInputElement).value.trim(),
-        },
-        subtitle: {
-          fa: (document.getElementById('settings-hero-slogan-subtitle-fa') as HTMLTextAreaElement).value.trim(),
-          en: (document.getElementById('settings-hero-slogan-subtitle-en') as HTMLTextAreaElement).value.trim(),
-        },
-      });
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="hero_slogan"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const heroSlogan = {
+            enabled: (document.getElementById('settings-hero-slogan-enabled') as HTMLInputElement).checked,
+            headline: {
+              fa: (document.getElementById('settings-hero-slogan-headline-fa') as HTMLInputElement).value.trim(),
+              en: (document.getElementById('settings-hero-slogan-headline-en') as HTMLInputElement).value.trim(),
+            },
+            subtitle: {
+              fa: (document.getElementById('settings-hero-slogan-subtitle-fa') as HTMLTextAreaElement).value.trim(),
+              en: (document.getElementById('settings-hero-slogan-subtitle-en') as HTMLTextAreaElement).value.trim(),
+            },
+          };
+          await updateSetting('hero_slogan', heroSlogan);
+          settings.hero_slogan = heroSlogan;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
   // ----- contact & social -----
@@ -782,27 +866,29 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
       themeSettings.quickActionsStyle === 'fixed' ? 'fixed' : 'floating';
   }
 
-  document.querySelector('[data-save-setting="contact"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      readSocialLinksFromDom();
-      await updateSetting('contact', {
-        phoneDisplay: (document.getElementById('settings-phone-display') as HTMLInputElement).value,
-        phoneTelHref: (document.getElementById('settings-phone-tel') as HTMLInputElement).value,
-        socialIconColor: (document.getElementById('social-color-hex') as HTMLInputElement).value.trim(),
-        socialLinks,
-      });
-      const quickActionsStyle = (document.getElementById('theme-quick-actions-style') as HTMLSelectElement).value;
-      const existingTheme = (settings.theme as Record<string, string> | undefined) ?? {};
-      await updateSetting('theme', { ...existingTheme, quickActionsStyle });
-      settings.theme = { ...existingTheme, quickActionsStyle };
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="contact"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          readSocialLinksFromDom();
+          const contactData = {
+            phoneDisplay: (document.getElementById('settings-phone-display') as HTMLInputElement).value,
+            phoneTelHref: (document.getElementById('settings-phone-tel') as HTMLInputElement).value,
+            socialIconColor: (document.getElementById('social-color-hex') as HTMLInputElement).value.trim(),
+            socialLinks,
+          };
+          await updateSetting('contact', contactData);
+          settings.contact = contactData;
+          const quickActionsStyle = (document.getElementById('theme-quick-actions-style') as HTMLSelectElement).value;
+          const existingTheme = (settings.theme as Record<string, string> | undefined) ?? {};
+          await updateSetting('theme', { ...existingTheme, quickActionsStyle });
+          settings.theme = { ...existingTheme, quickActionsStyle };
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
   // ----- app download links -----
@@ -859,19 +945,20 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     renderAppLinksList();
   }
 
-  document.querySelector('[data-save-setting="app_links"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      readAppLinksFromDom();
-      appLinksState.enabled = (document.getElementById('applinks-enabled') as HTMLInputElement).checked;
-      await updateSetting('app_links', appLinksState);
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="app_links"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          readAppLinksFromDom();
+          appLinksState.enabled = (document.getElementById('applinks-enabled') as HTMLInputElement).checked;
+          await updateSetting('app_links', appLinksState);
+          settings.app_links = appLinksState;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
   // ----- certifications / trust badges -----
@@ -923,19 +1010,20 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     renderCertificationsList();
   }
 
-  document.querySelector('[data-save-setting="certifications"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      readCertificationsFromDom();
-      certificationsState.enabled = (document.getElementById('certifications-enabled') as HTMLInputElement).checked;
-      await updateSetting('certifications', certificationsState);
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="certifications"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          readCertificationsFromDom();
+          certificationsState.enabled = (document.getElementById('certifications-enabled') as HTMLInputElement).checked;
+          await updateSetting('certifications', certificationsState);
+          settings.certifications = certificationsState;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
   // ----- license -----
@@ -1034,27 +1122,25 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     THEME_FIELDS.forEach((f) => applyThemeFieldValue(f.key, THEME_DEFAULTS[f.key]));
   });
 
-  document.querySelector('[data-save-setting="theme"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
-    try {
-      const theme: Record<string, string> = {};
-      THEME_FIELDS.forEach((f) => {
-        const value = (document.getElementById(`theme-${f.key}`) as HTMLInputElement).value.trim();
-        theme[f.key] = /^#[0-9a-fA-F]{6}$/.test(value) ? value : THEME_DEFAULTS[f.key];
-      });
-      // این فیلد دیگر اینجا ویرایش نمی‌شود (به تب «تماس و شبکه‌های اجتماعی» منتقل شده)؛ برای این‌که
-      // ذخیره‌ی رنگ‌بندی آخرین مقدارش را پاک نکند، همان مقدار فعلی‌اش نگه داشته می‌شود.
-      const existingTheme = (settings.theme as Record<string, string> | undefined) ?? {};
-      theme.quickActionsStyle = existingTheme.quickActionsStyle === 'fixed' ? 'fixed' : 'floating';
-      await updateSetting('theme', theme);
-      settings.theme = theme;
-      showSaved();
-    } catch (err) {
-      showError(err);
-    } finally {
-      btn.disabled = false;
-    }
+  document.querySelectorAll<HTMLButtonElement>('[data-save-setting="theme"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await handleSaveButton(btn, async () => {
+          const theme: Record<string, string> = {};
+          THEME_FIELDS.forEach((f) => {
+            const value = (document.getElementById(`theme-${f.key}`) as HTMLInputElement).value.trim();
+            theme[f.key] = /^#[0-9a-fA-F]{6}$/.test(value) ? value : THEME_DEFAULTS[f.key];
+          });
+          const existingTheme = (settings.theme as Record<string, string> | undefined) ?? {};
+          theme.quickActionsStyle = existingTheme.quickActionsStyle === 'fixed' ? 'fixed' : 'floating';
+          await updateSetting('theme', theme);
+          settings.theme = theme;
+        });
+        showSaved();
+      } catch (err) {
+        showError(err);
+      }
+    });
   });
 
   // ----- load everything -----

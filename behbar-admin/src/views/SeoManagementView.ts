@@ -2,6 +2,7 @@ import { icons } from '../components/icons.ts';
 import { fetchSettings, updateSetting, fetchAdminArticles } from '../utils/api.ts';
 import type { ArticleRecord } from '../utils/api.ts';
 import { showToast } from '../utils/toast.ts';
+import { handleSaveButton } from '../utils/save-button.ts';
 
 interface SeoSettings {
   googleSiteVerification: string;
@@ -39,28 +40,28 @@ export function renderSeoManagementView(): string {
     <p class="error-text" id="seo-error" hidden></p>
 
     <div class="editor-sidebar-card">
-      <h3>Google Search Console</h3>
+      <div class="card-header-action">
+        <h3 style="margin: 0;">Google Search Console</h3>
+        <button type="button" class="btn btn-primary btn-sm" id="seo-search-console-save-btn">ذخیره</button>
+      </div>
       <div class="settings-form-grid">
         <div class="form-field">
           <label for="seo-search-console">کد تأیید Search Console</label>
           <input type="text" id="seo-search-console" dir="ltr" placeholder="مثلاً abcdEFGH12345..." />
         </div>
       </div>
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-primary" id="seo-search-console-save-btn">ذخیره</button>
-      </div>
     </div>
 
     <div class="editor-sidebar-card">
-      <h3>Google Analytics</h3>
+      <div class="card-header-action">
+        <h3 style="margin: 0;">Google Analytics</h3>
+        <button type="button" class="btn btn-primary btn-sm" id="seo-ga-save-btn">ذخیره</button>
+      </div>
       <div class="settings-form-grid">
         <div class="form-field">
           <label for="seo-ga-id">شناسه Google Analytics (GA4)</label>
           <input type="text" id="seo-ga-id" dir="ltr" placeholder="G-XXXXXXXXXX" />
         </div>
-      </div>
-      <div class="settings-panel-footer">
-        <button type="button" class="btn btn-primary" id="seo-ga-save-btn">ذخیره</button>
       </div>
     </div>
 
@@ -81,16 +82,7 @@ export function initSeoManagementView(onEditArticle: (id: number) => void = () =
   // باید هنگام ذخیره‌ی کارت‌های دیگر دست‌نخورده بماند — پس فقط این‌جا نگه‌داری می‌شود، نه در یک اینپوت.
   let defaultOgImage = '';
 
-  function showSuccess(btn: HTMLButtonElement): void {
-    const original = btn.textContent;
-    btn.classList.add('btn-success');
-    btn.textContent = 'ذخیره شد ✓';
-    window.setTimeout(() => {
-      btn.classList.remove('btn-success');
-      btn.textContent = original;
-    }, 1800);
-    showToast('تنظیمات سئو ذخیره شد.');
-  }
+
 
   function showError(err: unknown): void {
     errorEl!.hidden = false;
@@ -129,15 +121,14 @@ export function initSeoManagementView(onEditArticle: (id: number) => void = () =
   function wireSeoSaveButton(id: string): void {
     document.getElementById(id)?.addEventListener('click', async (e) => {
       const btn = e.currentTarget as HTMLButtonElement;
-      btn.disabled = true;
+      errorEl!.hidden = true;
       try {
-        errorEl!.hidden = true;
-        await updateSetting('seo', readSeoFromDom());
-        showSuccess(btn);
+        await handleSaveButton(btn, async () => {
+          await updateSetting('seo', readSeoFromDom());
+        });
+        showToast('تنظیمات سئو ذخیره شد.');
       } catch (err) {
         showError(err);
-      } finally {
-        btn.disabled = false;
       }
     });
   }
