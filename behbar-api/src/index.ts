@@ -596,6 +596,49 @@ async function staffTwoFactorDisable(request: Request, env: Env, origin: string 
   return json({ ok: true }, 200, origin);
 }
 
+async function staffChangePassword(request: Request, env: Env, origin: string | null): Promise<Response> {
+  const staff = await resolveStaff(request, env);
+  if (!staff) return json({ error: 'دسترسی نداری.' }, 401, origin);
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'JSON نامعتبر است.' }, 400, origin);
+  }
+  const b = (body ?? {}) as Record<string, unknown>;
+  const currentPassword = typeof b.currentPassword === 'string' ? b.currentPassword : '';
+  const newPassword = typeof b.newPassword === 'string' ? b.newPassword : '';
+
+  if (!newPassword || newPassword.length < 6) {
+    return json({ error: 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.' }, 400, origin);
+  }
+
+  const row = await env.DB.prepare('SELECT password_hash, password_salt FROM staff WHERE id = ?')
+    .bind(staff.id)
+    .first<{ password_hash: string; password_salt: string }>();
+
+  if (!row) return json({ error: 'حساب کاربری یافت نشد.' }, 404, origin);
+
+  if (currentPassword) {
+    const valid = await verifyPassword(currentPassword, row.password_salt, row.password_hash);
+    if (!valid) {
+      return json({ error: 'رمز عبور فعلی نادرست است.' }, 400, origin);
+    }
+  }
+
+  const salt = generateSalt();
+  const hash = await hashPassword(newPassword, salt);
+
+  await env.DB.prepare('UPDATE staff SET password_hash = ?, password_salt = ? WHERE id = ?')
+    .bind(hash, salt, staff.id)
+    .run();
+
+  await logActivity(env, staff, 'تغییر رمز عبور', 'staff', staff.username);
+
+  return json({ ok: true, message: 'رمز عبور با موفقیت به‌روزرسانی شد.' }, 200, origin);
+}
+
 async function staffLogout(request: Request, env: Env, origin: string | null): Promise<Response> {
   const token = extractBearerToken(request);
   if (token) await env.DB.prepare('DELETE FROM staff_sessions WHERE token = ?').bind(token).run();
@@ -5968,6 +6011,9 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       }
       if (url.pathname === '/api/staff/logout' && request.method === 'POST') {
         return await staffLogout(request, env, origin);
+      }
+      if (url.pathname === '/api/staff/change-password' && request.method === 'POST') {
+        return await staffChangePassword(request, env, origin);
       }
       if (url.pathname === '/api/staff/me' && request.method === 'GET') {
         return await staffMe(request, env, origin);

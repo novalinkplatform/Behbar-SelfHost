@@ -235,6 +235,16 @@ export async function disableTwoFactor(password: string): Promise<void> {
   if (!res.ok) throw new Error(typeof body?.error === 'string' ? body.error : 'غیرفعال‌سازی ناموفق بود.');
 }
 
+export async function changePassword(newPassword: string, currentPassword?: string): Promise<void> {
+  const res = await authedFetch('/api/staff/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword, currentPassword }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof body?.error === 'string' ? body.error : 'تغییر رمز عبور ناموفق بود.');
+}
+
 export async function logout(): Promise<void> {
   await authedFetch('/api/staff/logout', { method: 'POST' }).catch(() => {});
 }

@@ -1,9 +1,9 @@
 import { getStaff } from '../utils/auth.ts';
-import { setupSmsTwoFactor, confirmSmsTwoFactor, disableTwoFactor } from '../utils/api.ts';
+import { setupSmsTwoFactor, confirmSmsTwoFactor, disableTwoFactor, changePassword } from '../utils/api.ts';
 import { renderOtpInputMarkup, initOtpInput } from '../components/OtpInput.ts';
+import { showToast } from '../utils/toast.ts';
 
-// این صفحه خودسرویس است — هر کارمند فقط روی حساب خودش کار می‌کند، نه نیاز به مجوز خاصی (شبیه staffMe
-// سمت سرور).
+// این صفحه خودسرویس است — هر کارمند فقط روی حساب خودش کار می‌کند (تغییر رمز عبور و ورود دومرحله‌ای)
 export function renderAccountSecurityView(): string {
   const staff = getStaff();
   const enabled = staff?.twoFactorEnabled ?? false;
@@ -11,10 +11,41 @@ export function renderAccountSecurityView(): string {
   return `
     <div class="settings-view">
       <div class="settings-panel">
-        <h2>امنیت حساب</h2>
-        <p class="settings-panel-hint">ورود دومرحله‌ای، لایه‌ی امنیتی اضافه‌ای است — حتی اگر رمز عبورتان لو برود، ورود بدون کد پیامکی ممکن نیست.</p>
+        <h2>امنیت حساب و گذرواژه</h2>
+        <p class="settings-panel-hint">مدیریت رمز عبور حساب کاربری و تنظیمات امنیتی ورود دو مرحله‌ای</p>
 
+        <!-- Change Password Card -->
+        <div class="editor-sidebar-card" id="account-security-password-card" style="margin-bottom: var(--space-4);">
+          <h3 style="margin-top: 0; font-size: 1.05rem; font-weight: 700;">تغییر رمز عبور</h3>
+          <p class="settings-panel-hint">رمز عبور جدید باید حداقل ۶ کاراکتر و شامل حروف و ارقام باشد.</p>
+
+          <form id="account-security-change-pwd-form" style="display:flex; flex-direction:column; gap: var(--space-3); max-width: 440px;">
+            <div class="form-field">
+              <label for="pwd-current">رمز عبور فعلی</label>
+              <input type="password" id="pwd-current" autocomplete="current-password" placeholder="رمز عبور فعلی خود را وارد کنید" />
+            </div>
+
+            <div class="form-field">
+              <label for="pwd-new">رمز عبور جدید</label>
+              <input type="password" id="pwd-new" autocomplete="new-password" required minlength="6" placeholder="حداقل ۶ کاراکتر" />
+            </div>
+
+            <div class="form-field">
+              <label for="pwd-confirm">تکرار رمز عبور جدید</label>
+              <input type="password" id="pwd-confirm" autocomplete="new-password" required minlength="6" placeholder="تکرار رمز عبور جدید" />
+            </div>
+
+            <p class="error-text" id="pwd-change-error" hidden></p>
+
+            <div>
+              <button type="submit" class="btn btn-primary" id="pwd-change-submit-btn">ذخیره و تغییر رمز عبور</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2FA Card -->
         <div class="editor-sidebar-card" id="account-security-status-card">
+          <h3 style="margin-top: 0; font-size: 1.05rem; font-weight: 700;">ورود دو مرحله‌ای پیامکی</h3>
           ${
             enabled
               ? `
@@ -53,6 +84,50 @@ export function initAccountSecurityView(): void {
   const smsErrorEl = document.getElementById('account-security-sms-error')!;
   const smsVerifyingEl = document.getElementById('account-security-sms-verifying')!;
 
+  // Handle Change Password Form
+  const changePwdForm = document.getElementById('account-security-change-pwd-form') as HTMLFormElement;
+  const currentPwdInput = document.getElementById('pwd-current') as HTMLInputElement;
+  const newPwdInput = document.getElementById('pwd-new') as HTMLInputElement;
+  const confirmPwdInput = document.getElementById('pwd-confirm') as HTMLInputElement;
+  const pwdErrorEl = document.getElementById('pwd-change-error')!;
+  const submitBtn = document.getElementById('pwd-change-submit-btn') as HTMLButtonElement;
+
+  changePwdForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    pwdErrorEl.hidden = true;
+
+    const currentPwd = currentPwdInput?.value || '';
+    const newPwd = newPwdInput?.value || '';
+    const confirmPwd = confirmPwdInput?.value || '';
+
+    if (newPwd.length < 6) {
+      pwdErrorEl.hidden = false;
+      pwdErrorEl.textContent = 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.';
+      return;
+    }
+
+    if (newPwd !== confirmPwd) {
+      pwdErrorEl.hidden = false;
+      pwdErrorEl.textContent = 'رمز عبور جدید با تکرار آن یکسان نیست.';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ذخیره...';
+
+    try {
+      await changePassword(newPwd, currentPwd);
+      showToast('رمز عبور با موفقیت تغییر کرد.', 'success');
+      changePwdForm.reset();
+    } catch (err) {
+      pwdErrorEl.hidden = false;
+      pwdErrorEl.textContent = err instanceof Error ? err.message : 'خطا در تغییر رمز عبور';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'ذخیره و تغییر رمز عبور';
+    }
+  });
+
   async function confirmCode(code: string, otpHandle: ReturnType<typeof initOtpInput>): Promise<void> {
     smsErrorEl.hidden = true;
     smsVerifyingEl.hidden = false;
@@ -71,8 +146,8 @@ export function initAccountSecurityView(): void {
     void (async () => {
       try {
         await setupSmsTwoFactor();
-        statusCard!.hidden = true;
-        smsCard!.hidden = false;
+        if (statusCard) statusCard.hidden = true;
+        if (smsCard) smsCard.hidden = false;
         const otpHandle = initOtpInput('account-security-sms', {
           onComplete: (code) => void confirmCode(code, otpHandle),
           onResend: () => void setupSmsTwoFactor().catch((err) => window.alert(err instanceof Error ? err.message : 'ارسال دوباره‌ی کد ناموفق بود.')),
