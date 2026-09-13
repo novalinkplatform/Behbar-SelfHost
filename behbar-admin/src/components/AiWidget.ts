@@ -26,16 +26,23 @@ export function renderAiWidget(): string {
     </button>
     <div class="ai-widget-overlay" id="ai-widget-panel" hidden>
       <aside class="ai-widget-sidebar">
-        <button type="button" class="btn btn-primary btn-block" id="ai-widget-new-chat-btn">
-          <span class="icon">${icons.plusCircle}</span>
-          گفتگوی جدید
-        </button>
+        <div class="ai-widget-sidebar-header">
+          <button type="button" class="btn btn-primary btn-block" id="ai-widget-new-chat-btn">
+            <span class="icon">${icons.plusCircle}</span>
+            گفتگوی جدید
+          </button>
+          <button type="button" class="ai-widget-close ai-widget-mobile-close" id="ai-widget-sidebar-close" aria-label="بستن" title="بستن">
+            <span class="icon">${icons.close}</span>
+          </button>
+        </div>
         <div class="ai-widget-conversation-list" id="ai-widget-conversation-list"></div>
       </aside>
       <div class="ai-widget-main">
         <div class="ai-widget-header">
           <span class="ai-widget-title"><span class="icon">${icons.ai}</span> دستیار هوش مصنوعی</span>
-          <button type="button" class="ai-widget-close" id="ai-widget-close" aria-label="بستن">${icons.close}</button>
+          <button type="button" class="ai-widget-close" id="ai-widget-close" aria-label="بستن" title="بستن">
+            <span class="icon">${icons.close}</span>
+          </button>
         </div>
         <p class="error-text" id="ai-widget-error" hidden></p>
         <div class="chat-thread ai-widget-thread">
@@ -187,8 +194,17 @@ export function initAiWidget(): void {
       input.focus();
     }
   });
-  closeBtn.addEventListener('click', () => {
+  const hidePanel = () => {
     panel.hidden = true;
+  };
+
+  closeBtn.addEventListener('click', hidePanel);
+  document.getElementById('ai-widget-sidebar-close')?.addEventListener('click', hidePanel);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !panel.hidden) {
+      hidePanel();
+    }
   });
 
   newChatBtn.addEventListener('click', () => void newChat());
