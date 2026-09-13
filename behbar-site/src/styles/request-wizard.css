@@ -502,20 +502,75 @@
 
 @media (max-width: 600px) {
   .request-card {
-    padding: var(--space-4);
-    border-radius: 18px;
+    padding: 16px 14px;
+    border-radius: 20px;
+    margin-bottom: 28px;
   }
 
   .wizard-progress {
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-2);
   }
 
   .wizard-question {
+    font-size: 1.08rem;
     margin-bottom: var(--space-3);
+    line-height: 1.45;
+  }
+
+  .wizard-service-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .wizard-service-card {
+    padding: 12px 4px;
+    min-height: 96px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+
+  .wizard-service-card-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .wizard-service-card-title {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    font-weight: 700;
+  }
+
+  .wizard-service-card-subtitle {
+    font-size: 0.66rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .wizard-choice-row-lg .wizard-pill-lg {
     min-width: 100%;
+  }
+
+  .wizard-choice-grid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 6px;
+  }
+
+  .wizard-choice-chip {
+    padding: 8px 4px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
+
+  .wizard-choice-chip .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .location-map {
+    height: 190px;
   }
 }
 
@@ -523,4 +578,13 @@
   .location-select-group {
     flex-direction: column;
   }
+
+  .wizard-service-card-title {
+    font-size: 0.72rem;
+  }
+
+  .wizard-service-card-subtitle {
+    font-size: 0.62rem;
+  }
 }
+

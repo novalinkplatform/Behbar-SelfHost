@@ -57,7 +57,13 @@
 
 @media (max-width: 600px) {
   .hero-inner {
-    padding-block: 6rem var(--space-4);
+    padding-block: 4.5rem 1rem;
     gap: var(--space-3);
   }
+
+  .demo-badges-wrapper ~ #main-content .hero-inner {
+    padding-top: 1rem;
+  }
 }
+
+

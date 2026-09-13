@@ -23,18 +23,6 @@
 }
 
 .lang-toggle-floating {
-  display: none;
-  position: fixed;
-  top: 14px;
-  inset-inline-start: 16px;
-  z-index: 150;
-  box-shadow: var(--shadow-lg);
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  display: none !important;
 }
 
-@media (max-width: 768px) {
-  .lang-toggle-floating {
-    display: inline-flex;
-  }
-}

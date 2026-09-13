@@ -1,4 +1,4 @@
-import{n as e,t}from"./appReady-u0XdWzsQ.js";import{t as n}from"./ContentBlock-lfnx2wq9.js";function r(){return`
+import{n as e,t}from"./appReady-JxiP_u2W.js";import{t as n}from"./ContentBlock-Fs9O21nN.js";function r(){return`
   <div class="nobex-wrapper">
     <!-- Fixed Luxury Dark Navbar -->
     <header class="nobex-navbar">

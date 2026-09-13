@@ -51,6 +51,15 @@ export function getHeaderExtraLinks(settings?: SiteSettings): HeaderExtraLink[] 
   return extraLinks;
 }
 
+function getSiteName(settings?: SiteSettings): string {
+  if (!settings?.site_name) return 'بهبار';
+  const name = settings.site_name;
+  if (typeof name === 'object') {
+    return pick(name.fa, name.en) || name.fa || 'بهبار';
+  }
+  return String(name);
+}
+
 export function renderHeader(settings?: SiteSettings): string {
   const extraLinks = getHeaderExtraLinks(settings);
   const extraHtml = extraLinks
@@ -64,11 +73,16 @@ export function renderHeader(settings?: SiteSettings): string {
     )
     .join('');
 
+  const brandName = getSiteName(settings);
+
   return `
     <header class="site-header">
       <div class="header-group">
-        <a class="header-logo" href="/" aria-label="${pick('خانه', 'Home')}">
-          <img src="/favicon.svg" alt="" />
+        <a class="header-brand" href="/" aria-label="${pick('خانه', 'Home')}">
+          <span class="header-logo">
+            <img src="/favicon.svg" alt="" />
+          </span>
+          <span class="header-brand-title">${brandName}</span>
         </a>
 
         <div class="header-pill">

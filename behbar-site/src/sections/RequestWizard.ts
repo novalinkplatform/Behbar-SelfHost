@@ -793,6 +793,15 @@ export function initRequestWizard(
       trackEvent('wizard_step', { step: currentStep, stepId: STEPS[currentStep - 1]?.id });
     }
     updateStepUI();
+
+    // روی صفحه‌های کوچک و موبایل، اسکرول نرم به بالای کارت تا مرحله جدید بریده نشود
+    if (card) {
+      const rect = card.getBoundingClientRect();
+      if (rect.top < 64 || rect.top > 220) {
+        const targetY = window.pageYOffset + rect.top - 68;
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      }
+    }
   }
 
   function updateNextButtonLabel(): void {

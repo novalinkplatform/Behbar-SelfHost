@@ -76,6 +76,7 @@
   }
 
   body {
-    padding-bottom: 92px;
+    padding-bottom: max(96px, calc(80px + env(safe-area-inset-bottom, 16px)));
   }
 }
+

@@ -1,4 +1,4 @@
-import{b as e,f as t,n,t as r}from"./appReady-u0XdWzsQ.js";import{C as i,S as a,T as o,_ as s,b as c,c as l,g as u,h as d,i as f,l as p,n as m,r as h,t as g,v as _,w as v,x as y,y as b}from"./languageMode-Dku1sO_k.js";function x(n,r){let i=e(n.paragraphs,n.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),a=n.list?`<ul class="legal-list">${e(n.list,n.listEn??n.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
+import{b as e,f as t,n,t as r}from"./appReady-JxiP_u2W.js";import{C as i,S as a,T as o,_ as s,b as c,c as l,g as u,h as d,i as f,l as p,n as m,r as h,t as g,v as _,w as v,x as y,y as b}from"./languageMode-ldGds71Q.js";function x(n,r){let i=e(n.paragraphs,n.paragraphsEn).map(e=>`<p>${e}</p>`).join(``),a=n.list?`<ul class="legal-list">${e(n.list,n.listEn??n.list).map(e=>`<li>${e}</li>`).join(``)}</ul>`:``;return`
     <section class="legal-section">
       <div class="legal-section-head">
         <span class="legal-section-index">${t(r+1)}</span>

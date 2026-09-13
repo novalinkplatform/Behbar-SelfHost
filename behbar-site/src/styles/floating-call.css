@@ -15,12 +15,6 @@
   position: absolute;
 }
 
-@media (max-width: 768px) {
-  .header-quick-actions {
-    /* روی موبایل هر دکمه دوباره جای مستقل خودش را می‌گیرد (تماس بالای نوار پایین، چت داخل نوار). */
-    display: contents;
-  }
-}
 
 .quick-actions-side-toggle {
   display: flex;
@@ -203,23 +197,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  .floating-call {
-    position: fixed;
-    inset-inline-end: 20px;
-    bottom: 90px;
-    z-index: 150;
-    width: auto;
-    height: auto;
-    padding: 0.7rem 1.1rem 0.7rem 0.7rem;
-    justify-content: flex-start;
-    transition: background-color var(--transition-fast);
-  }
-
-  .floating-call-number {
-    display: inline;
-  }
-}
 
 /* دکمه‌ی شناور واتس‌اپ — دقیقاً همان الگوی .floating-call (موج، ابعاد، حالت موبایل) فقط بدون متن؛
    چون مقصدش لینک واتس‌اپ است نه یک شماره‌ی قابل‌نمایش، همیشه فقط آیکون است، در هیچ عرضی بزرگ نمی‌شود. */
@@ -291,15 +268,67 @@
 }
 
 @media (max-width: 768px) {
+  .header-quick-actions {
+    position: fixed !important;
+    bottom: 86px !important;
+    top: auto !important;
+    z-index: 150 !important;
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+    pointer-events: none !important;
+  }
+
+  /* چیدمان سمت راست یا چپ طبق تنظیمات مدیریت */
+  html.quick-actions-right .header-quick-actions,
+  html:not(.quick-actions-left) .header-quick-actions {
+    right: 14px !important;
+    left: auto !important;
+    align-items: flex-end !important;
+  }
+
+  html.quick-actions-left .header-quick-actions {
+    left: 14px !important;
+    right: auto !important;
+    align-items: flex-start !important;
+  }
+
+  .floating-call,
   .floating-whatsapp {
-    position: fixed;
-    inset-inline-end: 20px;
-    bottom: 150px;
-    z-index: 150;
-    width: auto;
-    height: auto;
-    min-height: 44px;
-    padding: 0.6rem 1rem 0.6rem 0.7rem;
-    justify-content: flex-start;
+    pointer-events: auto !important;
+    position: static !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22) !important;
+    transition: transform var(--transition-fast), background-color var(--transition-fast) !important;
+  }
+
+  .floating-call-number,
+  .floating-whatsapp-label {
+    display: none !important;
+  }
+
+  .floating-call-icon-wrap,
+  .floating-whatsapp-icon-wrap {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .floating-call .icon,
+  .floating-whatsapp .icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* دکمه چت داخل نوار ناوبری پایین صفحه قرار دارد */
+  .header-quick-actions .chat-widget-button {
+    display: none !important;
   }
 }
+

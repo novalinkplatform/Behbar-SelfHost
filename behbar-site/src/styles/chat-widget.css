@@ -402,3 +402,15 @@ html[dir='ltr'] .chat-widget-send .icon {
   height: 16px;
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .chat-widget-panel {
+    inset-inline: 12px;
+    bottom: 86px;
+    top: auto;
+    width: auto;
+    max-height: calc(100vh - 160px);
+    border-radius: 20px;
+  }
+}
+

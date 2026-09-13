@@ -132,14 +132,24 @@ const CSS = `
 
 @media (max-width: 768px) {
   .demo-badges-wrapper {
-    top: 10px;
-    left: 12px;
-    gap: 6px;
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 64px auto 12px;
+    justify-content: center;
+    gap: 8px;
+    z-index: 10;
+    padding-inline: 16px;
   }
   .demo-sale-badge, .demo-promo-badge {
-    height: 36px;
+    height: 32px;
     padding: 0 10px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    gap: 5px;
+  }
+  .demo-sale-badge-icon, .demo-promo-badge-icon {
+    width: 15px;
+    height: 15px;
   }
 }
 
