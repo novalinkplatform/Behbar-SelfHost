@@ -12,6 +12,14 @@ export default {
     const strippedPath = url.pathname.replace(/^\/management/, '') || '/';
     const upstreamUrl = new URL(strippedPath + url.search, ADMIN_ORIGIN);
     const upstreamRequest = new Request(upstreamUrl, request);
-    return fetch(upstreamRequest);
+    const response = await fetch(upstreamRequest);
+
+    // اگر درخواست مسیر SPA (مانند /dashboard، /fleet، /settings و ...) بود و فایل مستقیمی روی Pages نبود،
+    // برای روتینگ سمت مرورگر، فایل index.html سرو می‌شود.
+    if (response.status === 404 && !strippedPath.includes('.')) {
+      return fetch(new Request(new URL('/index.html', ADMIN_ORIGIN), request));
+    }
+
+    return response;
   },
 };

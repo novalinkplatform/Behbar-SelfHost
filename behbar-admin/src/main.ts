@@ -122,10 +122,106 @@ function showLogin(): void {
   void applySiteNameToAdminChrome();
 }
 
+const SCREEN_TO_PATH: Record<AdminScreen, string> = {
+  home: '',
+  dashboard: 'dashboard',
+  requests: 'requests',
+  pipeline: 'pipeline',
+  map: 'map',
+  fleet: 'fleet',
+  chat: 'chat',
+  content: 'content',
+  personnel: 'personnel',
+  settings: 'settings',
+  plugins: 'plugins',
+  seo: 'seo',
+  media: 'media',
+  staff: 'staff',
+  roles: 'roles',
+  testimonials: 'testimonials',
+  stories: 'stories',
+  jobApplications: 'job-applications',
+  activityLog: 'activity-log',
+  accountSecurity: 'account-security',
+  myWallet: 'wallet',
+  payroll: 'payroll',
+  magazine: 'magazine',
+  'magazine-editor': 'magazine-editor',
+  pages: 'settings',
+  'page-editor': 'page-editor',
+  dashboardOrders: 'dashboard/orders',
+  dashboardVisitors: 'dashboard/visitors',
+  dashboardStaff: 'dashboard/staff',
+  staffHistory: 'staff/history',
+};
+
+const PATH_TO_SCREEN: Record<string, AdminScreen> = {
+  '': 'home',
+  dashboard: 'dashboard',
+  requests: 'requests',
+  pipeline: 'pipeline',
+  map: 'map',
+  fleet: 'fleet',
+  chat: 'chat',
+  content: 'content',
+  personnel: 'personnel',
+  settings: 'settings',
+  plugins: 'plugins',
+  seo: 'seo',
+  media: 'media',
+  staff: 'staff',
+  roles: 'roles',
+  testimonials: 'testimonials',
+  stories: 'stories',
+  'job-applications': 'jobApplications',
+  'activity-log': 'activityLog',
+  'account-security': 'accountSecurity',
+  wallet: 'myWallet',
+  payroll: 'payroll',
+  magazine: 'magazine',
+  'magazine-editor': 'magazine-editor',
+  'page-editor': 'page-editor',
+  'dashboard/orders': 'dashboardOrders',
+  'dashboard/visitors': 'dashboardVisitors',
+  'dashboard/staff': 'dashboardStaff',
+  'staff/history': 'staffHistory',
+};
+
+function getScreenFromUrl(): { screen: AdminScreen; detailId?: number | null } | null {
+  const pathname = window.location.pathname;
+  const normalized = pathname.replace(/^\/management\/?/, '').replace(/\/+$/, '');
+  if (!normalized) return { screen: 'home' };
+
+  if (PATH_TO_SCREEN[normalized]) {
+    return { screen: PATH_TO_SCREEN[normalized] };
+  }
+
+  const parts = normalized.split('/');
+  if (parts.length === 2 && (parts[0] === 'magazine-editor' || parts[0] === 'page-editor')) {
+    const screen = parts[0] as AdminScreen;
+    const id = parseInt(parts[1], 10);
+    return { screen, detailId: isNaN(id) ? null : id };
+  }
+
+  return null;
+}
+
+function updateBrowserUrl(screen: AdminScreen, editingDetailId: number | null = null): void {
+  const subpath = SCREEN_TO_PATH[screen] ?? '';
+  let fullSubpath = subpath;
+  if ((screen === 'magazine-editor' || screen === 'page-editor') && editingDetailId) {
+    fullSubpath = `${subpath}/${editingDetailId}`;
+  }
+  const targetUrl = fullSubpath ? `/management/${fullSubpath}` : '/management/';
+  if (window.location.pathname !== targetUrl) {
+    window.history.pushState({ screen, editingDetailId }, '', targetUrl);
+  }
+}
+
 let currentScreen: AdminScreen = 'home';
 let viewingStaffHistory: StaffRecord | null = null;
 
-function showScreen(screen: AdminScreen, editingDetailId: number | null = null): void {
+function showScreen(screen: AdminScreen, editingDetailId: number | null = null, syncUrl = true): void {
   const container = document.getElementById('view-container');
   const backBtn = document.getElementById('admin-back-btn') as HTMLButtonElement | null;
   const staff = getStaff();
@@ -137,6 +233,10 @@ function showScreen(screen: AdminScreen, editingDetailId: number | null = null):
     screen,
     extra: (screen === 'magazine-editor' || screen === 'page-editor') ? editingDetailId : screen === 'staffHistory' ? viewingStaffHistory : undefined,
   });
+
+  if (syncUrl) {
+    updateBrowserUrl(screen, editingDetailId);
+  }
 
   if (screen === 'home') {
     container.innerHTML = renderHomeView(staff);
@@ -283,9 +383,24 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
     updateThemeToggleUI();
   });
 
-  // کلیک روی نشان بهبار
+  // کلیک روی نشان بهبار -> بازگشت به صفحه مدیریت خالص (/management/)
   document.getElementById('admin-logo-btn')?.addEventListener('click', () => {
     showScreen('home');
+  });
+
+  // ناوبری با دکمه‌های بازگشت و جلو مرورگر (History Popstate)
+  window.addEventListener('popstate', (event) => {
+    const state = event.state as { screen?: AdminScreen; editingDetailId?: number | null } | null;
+    if (state?.screen) {
+      showScreen(state.screen, state.editingDetailId ?? null, false);
+    } else {
+      const fromUrl = getScreenFromUrl();
+      if (fromUrl) {
+        showScreen(fromUrl.screen, fromUrl.detailId ?? null, false);
+      } else {
+        showScreen('home', null, false);
+      }
+    }
   });
 
   if (hasPermission(staff, 'settings')) void loadSidebarVersion();
@@ -294,18 +409,22 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
   void applySiteNameToAdminChrome();
   if (hasPermission(staff, 'ai')) initAiWidget();
 
+  const fromUrl = getScreenFromUrl();
   const saved = restore ? getScreenState() : null;
-  if (saved?.screen === 'staffHistory' && saved.extra) {
+
+  if (fromUrl && fromUrl.screen !== 'home') {
+    showScreen(fromUrl.screen, fromUrl.detailId ?? null, false);
+  } else if (saved?.screen === 'staffHistory' && saved.extra) {
     viewingStaffHistory = saved.extra as StaffRecord;
     showScreen('staffHistory');
   } else if (saved?.screen === 'magazine-editor') {
     showScreen('magazine-editor', (saved.extra as number | null) ?? null);
   } else if (saved?.screen === 'page-editor') {
     showScreen('page-editor', (saved.extra as number | null) ?? null);
-  } else if (saved?.screen) {
+  } else if (saved?.screen && saved.screen !== 'home') {
     showScreen(saved.screen as AdminScreen);
   } else {
-    showScreen('home');
+    showScreen('home', null, true);
   }
 }
 
