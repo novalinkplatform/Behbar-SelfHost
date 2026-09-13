@@ -96,9 +96,9 @@ export function renderHeader(settings?: SiteSettings): string {
             <span class="header-label">${pick('مجله', 'Magazine')}</span>
           </a>
 
-          <a class="header-item" href="/orders">
-            <span class="icon">${icons.box}</span>
-            <span class="header-label">${pick('درخواست‌های من', 'My requests')}</span>
+          <a class="header-item" href="/orders#waybill" title="${pick('استعلام بارنامه و بیمه‌نامه', 'Waybill & Insurance')}">
+            <span class="icon">${icons.shield}</span>
+            <span class="header-label">${pick('بیمه‌نامه و بارنامه', 'Insurance & Waybill')}</span>
           </a>
 
           ${extraHtml}

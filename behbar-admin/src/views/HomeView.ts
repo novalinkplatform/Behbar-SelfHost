@@ -23,6 +23,9 @@ export function renderHomeView(staff: StaffInfo): string {
   const tiles: string[] = [];
   tiles.push(tile('dashboard', icons.chart, 'داشبورد'));
   if (showRequests) tiles.push(tile('requests', icons.columns, 'درخواست‌ها'));
+  if (hasPermission(staff, 'pipeline') || hasPermission(staff, 'staff') || hasPermission(staff, 'dashboard')) {
+    tiles.push(tile('waybills', icons.shield, 'بیمه‌نامه و بارنامه'));
+  }
   if (showFinance) tiles.push(tile('finance', icons.finance, 'مدیریت مالی'));
   if (hasPermission(staff, 'staff')) tiles.push(tile('fleet', icons.truck, 'مدیریت ناوگان حمل‌ونقل'));
   if (showSettings) tiles.push(tile('settings', icons.settings, 'تنظیمات سایت'));

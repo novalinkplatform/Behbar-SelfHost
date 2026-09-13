@@ -41,6 +41,7 @@ import { renderAccountSecurityView, initAccountSecurityView } from './views/Acco
 import { renderMyWalletView, initMyWalletView } from './views/MyWalletView.ts';
 import { renderPayrollView, initPayrollView } from './views/PayrollView.ts';
 import { renderFinanceView, initFinanceView } from './views/FinanceView.ts';
+import { renderWaybillsView, initWaybillsView } from './views/WaybillsView.ts';
 import {
   renderHomeView,
   renderRequestsHomeView,
@@ -91,7 +92,8 @@ type AdminView =
   | 'accountSecurity'
   | 'myWallet'
   | 'payroll'
-  | 'finance';
+  | 'finance'
+  | 'waybills';
 type AdminScreen = 'home' | 'requests' | 'content' | 'personnel' | 'dashboard' | AdminView;
 
 // صفحه‌ی خانه با کاشی‌های شبکه‌ای جایگزین فهرست کناری قبلی شده؛ این نگاشت مشخص می‌کند دکمه‌ی «بازگشت»
@@ -100,7 +102,7 @@ type AdminScreen = 'home' | 'requests' | 'content' | 'personnel' | 'dashboard' |
 // عملکرد کارمندان زیرمجموعه‌ی «آمار و گزارش» هستند).
 function screenParent(screen: AdminScreen): AdminScreen | null {
   if (screen === 'home') return null;
-  if (screen === 'requests' || screen === 'content' || screen === 'personnel' || screen === 'dashboard' || screen === 'settings' || screen === 'plugins' || screen === 'chat' || screen === 'fleet' || screen === 'finance') return 'home';
+  if (screen === 'requests' || screen === 'content' || screen === 'personnel' || screen === 'dashboard' || screen === 'settings' || screen === 'plugins' || screen === 'chat' || screen === 'fleet' || screen === 'finance' || screen === 'waybills') return 'home';
   if (screen === 'pipeline' || screen === 'map') return 'requests';
   if (screen === 'magazine' || screen === 'testimonials' || screen === 'stories' || screen === 'seo' || screen === 'media') return 'content';
   if (screen === 'staff' || screen === 'jobApplications' || screen === 'roles' || screen === 'activityLog' || screen === 'payroll') return 'personnel';
@@ -148,6 +150,7 @@ const SCREEN_TO_PATH: Record<AdminScreen, string> = {
   myWallet: 'wallet',
   payroll: 'payroll',
   finance: 'finance',
+  waybills: 'waybills',
   magazine: 'magazine',
   'magazine-editor': 'magazine-editor',
   pages: 'settings',
@@ -166,6 +169,7 @@ const PATH_TO_SCREEN: Record<string, AdminScreen> = {
   map: 'map',
   fleet: 'fleet',
   finance: 'finance',
+  waybills: 'waybills',
   chat: 'chat',
   content: 'content',
   personnel: 'personnel',
@@ -342,6 +346,9 @@ function showScreen(screen: AdminScreen, editingDetailId: number | null = null, 
   } else if (screen === 'finance') {
     container.innerHTML = renderFinanceView(staff);
     initFinanceView();
+  } else if (screen === 'waybills') {
+    container.innerHTML = renderWaybillsView(staff);
+    initWaybillsView();
   } else {
     container.innerHTML = renderHomeView(staff);
     wireHomeTiles(container, (view) => showScreen(view as AdminScreen));

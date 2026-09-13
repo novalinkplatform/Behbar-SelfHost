@@ -27,6 +27,14 @@ export const serviceCategories: ServiceCategory[] = [
     subtitle: 'کامیونت، خاور، نیسان، وانت',
     subtitleEn: 'Light truck, van and pickup',
   },
+  {
+    id: 'insurance',
+    label: 'بیمه‌نامه و بارنامه',
+    labelEn: 'Insurance & Waybill',
+    icon: icons.shield,
+    subtitle: 'صدور بارنامه رسمی راهداری و پوشش کامل بیمه باربری',
+    subtitleEn: 'Official waybill & comprehensive cargo insurance policy',
+  },
 ];
 
 // در صورتی که تنظیمات وسیله‌ها از سرور بارگذاری نشود، این فهرست پیش‌فرض به‌کار می‌رود.
@@ -45,6 +53,7 @@ export const CATEGORY_VEHICLE_IDS: Record<string, string[]> = {
   domestic: ['motorcycle', 'pickup', 'van', 'light-truck', 'truck', 'trailer'],
   transit: ['truck', 'trailer'],
   moving: ['pickup', 'van', 'light-truck'],
+  insurance: ['pickup', 'van', 'light-truck', 'truck', 'trailer'],
 };
 
 // موتور فقط برای بارهای داخلی و فقط درون‌شهری کاربرد دارد.
