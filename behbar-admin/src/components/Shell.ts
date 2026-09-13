@@ -28,9 +28,6 @@ export function renderShell(staff: StaffInfo): string {
             <span class="icon icon-theme-sun" id="admin-theme-sun" hidden>${icons.sun}</span>
             <span class="icon icon-theme-moon" id="admin-theme-moon">${icons.moon}</span>
           </button>
-          <button type="button" class="admin-topbar-icon-btn" id="admin-wallet-btn" title="کیف پول من">
-            <span class="icon">${icons.wallet}</span>
-          </button>
           <button type="button" class="admin-topbar-user" id="admin-account-btn" title="امنیت حساب">${staff.fullName} · ${staff.roleLabel}</button>
           <button type="button" class="admin-nav-item admin-logout" id="logout-btn">
             <span class="icon">${icons.logout}</span>

@@ -18,10 +18,12 @@ export function renderHomeView(staff: StaffInfo): string {
   const showSettings = hasPermission(staff, 'settings') || hasPermission(staff, 'homepage');
 
   const showRequests = hasPermission(staff, 'pipeline') || hasPermission(staff, 'map');
+  const showFinance = hasPermission(staff, 'dashboard') || hasPermission(staff, 'wallet') || hasPermission(staff, 'roles') || hasPermission(staff, 'staff');
 
   const tiles: string[] = [];
   tiles.push(tile('dashboard', icons.chart, 'داشبورد'));
   if (showRequests) tiles.push(tile('requests', icons.columns, 'درخواست‌ها'));
+  if (showFinance) tiles.push(tile('finance', icons.finance, 'مدیریت مالی'));
   if (hasPermission(staff, 'staff')) tiles.push(tile('fleet', icons.truck, 'مدیریت ناوگان حمل‌ونقل'));
   if (showSettings) tiles.push(tile('settings', icons.settings, 'تنظیمات سایت'));
   if (hasPermission(staff, 'chat')) tiles.push(tile('chat', icons.chat, 'چت پشتیبانی'));

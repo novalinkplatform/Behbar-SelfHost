@@ -40,6 +40,7 @@ import { renderSeoManagementView, initSeoManagementView } from './views/SeoManag
 import { renderAccountSecurityView, initAccountSecurityView } from './views/AccountSecurityView.ts';
 import { renderMyWalletView, initMyWalletView } from './views/MyWalletView.ts';
 import { renderPayrollView, initPayrollView } from './views/PayrollView.ts';
+import { renderFinanceView, initFinanceView } from './views/FinanceView.ts';
 import {
   renderHomeView,
   renderRequestsHomeView,
@@ -89,7 +90,8 @@ type AdminView =
   | 'activityLog'
   | 'accountSecurity'
   | 'myWallet'
-  | 'payroll';
+  | 'payroll'
+  | 'finance';
 type AdminScreen = 'home' | 'requests' | 'content' | 'personnel' | 'dashboard' | AdminView;
 
 // صفحه‌ی خانه با کاشی‌های شبکه‌ای جایگزین فهرست کناری قبلی شده؛ این نگاشت مشخص می‌کند دکمه‌ی «بازگشت»
@@ -98,7 +100,7 @@ type AdminScreen = 'home' | 'requests' | 'content' | 'personnel' | 'dashboard' |
 // عملکرد کارمندان زیرمجموعه‌ی «آمار و گزارش» هستند).
 function screenParent(screen: AdminScreen): AdminScreen | null {
   if (screen === 'home') return null;
-  if (screen === 'requests' || screen === 'content' || screen === 'personnel' || screen === 'dashboard' || screen === 'settings' || screen === 'plugins' || screen === 'chat' || screen === 'fleet') return 'home';
+  if (screen === 'requests' || screen === 'content' || screen === 'personnel' || screen === 'dashboard' || screen === 'settings' || screen === 'plugins' || screen === 'chat' || screen === 'fleet' || screen === 'finance') return 'home';
   if (screen === 'pipeline' || screen === 'map') return 'requests';
   if (screen === 'magazine' || screen === 'testimonials' || screen === 'stories' || screen === 'seo' || screen === 'media') return 'content';
   if (screen === 'staff' || screen === 'jobApplications' || screen === 'roles' || screen === 'activityLog' || screen === 'payroll') return 'personnel';
@@ -145,6 +147,7 @@ const SCREEN_TO_PATH: Record<AdminScreen, string> = {
   accountSecurity: 'account-security',
   myWallet: 'wallet',
   payroll: 'payroll',
+  finance: 'finance',
   magazine: 'magazine',
   'magazine-editor': 'magazine-editor',
   pages: 'settings',
@@ -162,6 +165,7 @@ const PATH_TO_SCREEN: Record<string, AdminScreen> = {
   pipeline: 'pipeline',
   map: 'map',
   fleet: 'fleet',
+  finance: 'finance',
   chat: 'chat',
   content: 'content',
   personnel: 'personnel',
@@ -335,6 +339,9 @@ function showScreen(screen: AdminScreen, editingDetailId: number | null = null, 
   } else if (screen === 'payroll') {
     container.innerHTML = renderPayrollView();
     initPayrollView();
+  } else if (screen === 'finance') {
+    container.innerHTML = renderFinanceView(staff);
+    initFinanceView();
   } else {
     container.innerHTML = renderHomeView(staff);
     wireHomeTiles(container, (view) => showScreen(view as AdminScreen));
@@ -357,7 +364,6 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
   });
 
   document.getElementById('admin-account-btn')?.addEventListener('click', () => showScreen('accountSecurity'));
-  document.getElementById('admin-wallet-btn')?.addEventListener('click', () => showScreen('myWallet'));
 
   function updateThemeToggleUI(): void {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
