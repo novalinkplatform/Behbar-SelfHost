@@ -67,6 +67,10 @@ export function renderShell(staff: StaffInfo): string {
             ${staff.licenseSummary?.text || 'نسخه آزمایشی (۷ روز فعال)'}
           </span>
           <span class="admin-topbar-version" id="admin-sidebar-version" hidden></span>
+          <button type="button" class="admin-topbar-icon-btn admin-theme-toggle" id="admin-theme-toggle-btn" title="تغییر حالت تم (روشن / سبز زمردی تیره شیشه‌ای)" aria-label="تغییر حالت تم">
+            <span class="icon icon-theme-sun" id="admin-theme-sun" hidden>${icons.sun}</span>
+            <span class="icon icon-theme-moon" id="admin-theme-moon">${icons.moon}</span>
+          </button>
           <button type="button" class="admin-topbar-icon-btn" id="admin-wallet-btn" title="کیف پول من">
             <span class="icon">${icons.wallet}</span>
           </button>

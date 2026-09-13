@@ -1,9 +1,11 @@
 import { icons } from './icons.ts';
 import { renderLangToggle } from './LangToggle.ts';
+import { renderThemeToggle } from './ThemeToggle.ts';
 import { pick } from '../i18n/lang.ts';
 
 export function renderBottomNav(): string {
   return `
+    ${renderThemeToggle('theme-toggle-floating')}
     ${renderLangToggle('lang-toggle-floating')}
     <nav class="bottom-nav" aria-label="${pick('ناوبری پایین صفحه', 'Bottom navigation')}">
       <a class="bottom-nav-item" href="/">

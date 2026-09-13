@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
 
     <title>بهبار</title>
     <meta name="description" content="سامانه هوشمند حمل‌ونقل و اسباب‌کشی بهبار." />
@@ -27,6 +27,14 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="manifest" href="/site.webmanifest" />
+      <script>
+      (function() {
+        var t = localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -409,3 +409,17 @@ CREATE TABLE IF NOT EXISTS custom_pages (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_custom_pages_slug ON custom_pages(slug);
+
+CREATE TABLE IF NOT EXISTS user_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  visitor_id TEXT NOT NULL,
+  session_id TEXT,
+  event_type TEXT NOT NULL,
+  event_data TEXT,
+  path TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_user_events_created_at ON user_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_user_events_type ON user_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_user_events_visitor ON user_events(visitor_id);
+

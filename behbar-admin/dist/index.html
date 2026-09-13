@@ -6,8 +6,16 @@
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/management/favicon.svg" />
     <title>پنل مدیریت بهبار</title>
-    <script type="module" crossorigin src="/management/assets/index-D5R0pKCC.js"></script>
-    <link rel="stylesheet" crossorigin href="/management/assets/index-DnZL7R9L.css">
+    <script>
+      (function() {
+        var t = localStorage.getItem('behbar_admin_theme') || localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/management/assets/index-BD5cZJm7.js"></script>
+    <link rel="stylesheet" crossorigin href="/management/assets/index-B3YUKNZ4.css">
   </head>
   <body>
     <div id="app"></div>

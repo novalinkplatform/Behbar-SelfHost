@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
 
     <title>بهبار | ثبت آنلاین اسباب‌کشی و باربری در سراسر ایران</title>
     <meta
@@ -147,6 +147,14 @@
           }
         ]
       }
+    </script>
+      <script>
+      (function() {
+        var t = localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
     </script>
   </head>
   <body>

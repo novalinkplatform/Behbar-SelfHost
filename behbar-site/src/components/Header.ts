@@ -1,5 +1,6 @@
 import { icons } from './icons.ts';
 import { renderLangToggle } from './LangToggle.ts';
+import { renderThemeToggle, initThemeToggle } from './ThemeToggle.ts';
 import { pick } from '../i18n/lang.ts';
 import type { SiteSettings } from '../utils/dynamicContent.ts';
 
@@ -94,6 +95,7 @@ export function renderHeader(settings?: SiteSettings): string {
           <span class="header-label">${pick('ثبت درخواست', 'Submit request')}</span>
         </a>
 
+        ${renderThemeToggle()}
         ${renderLangToggle()}
 
         <a class="header-profile" href="/profile">
@@ -108,6 +110,7 @@ export function renderHeader(settings?: SiteSettings): string {
 let scrollHandler: (() => void) | null = null;
 
 export function initHeader(settings?: SiteSettings): void {
+  initThemeToggle();
   const header = document.querySelector<HTMLElement>('.site-header');
   if (!header) return;
 

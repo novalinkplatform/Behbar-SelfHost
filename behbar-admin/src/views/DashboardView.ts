@@ -116,6 +116,8 @@ export function initDashboardView(onNavigate: (view: string) => void): void {
 
       const totalViews = analytics?.totalViews ?? 0;
       const uniqueVisitors = analytics?.uniqueVisitors ?? 0;
+      const activeOnline = analytics?.activeOnline ?? 0;
+      const conversionRate = analytics?.conversionRate ?? 0;
 
       const recentOrders = requests.slice(0, 8);
 
@@ -158,6 +160,24 @@ export function initDashboardView(onNavigate: (view: string) => void): void {
             </div>
             <div class="dash-kpi-value is-currency">${formatToman(totalRevenue)}</div>
             <div class="dash-kpi-sub">میانگین هر سفارش: ${formatToman(avgValue)}</div>
+          </div>
+
+          <div class="dash-kpi-card">
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">کاربران آنلاین لحظه‌ای</span>
+              <span class="dash-live-badge"><span class="dash-live-dot"></span>زنده</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(activeOnline)}</div>
+            <div class="dash-kpi-sub">کاربران فعال در ۱۵ دقیقه اخیر</div>
+          </div>
+
+          <div class="dash-kpi-card">
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">نرخ تبدیل به سفارش</span>
+              <span class="dash-kpi-badge badge-primary">${toPersianDigits(conversionRate)}٪</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(conversionRate)} <span class="dash-kpi-unit">درصد</span></div>
+            <div class="dash-kpi-sub">از ${toPersianDigits(uniqueVisitors)} بازدیدکننده ماه</div>
           </div>
 
           <div class="dash-kpi-card">
@@ -429,12 +449,75 @@ export function initDashboardView(onNavigate: (view: string) => void): void {
       bodyEl.innerHTML = `
         <div class="dash-kpi-grid">
           <div class="dash-kpi-card">
-            <span class="dash-kpi-label">بازدید (۳۰ روز اخیر)</span>
-            <span class="dash-kpi-value">${toPersianDigits(analytics.totalViews)}</span>
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">کاربران آنلاین لحظه‌ای</span>
+              <span class="dash-live-badge"><span class="dash-live-dot"></span>زنده</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(analytics.activeOnline ?? 0)}</div>
+            <div class="dash-kpi-sub">فعال در ۱۵ دقیقه گذشته</div>
           </div>
+
           <div class="dash-kpi-card">
-            <span class="dash-kpi-label">بازدیدکننده‌ی یکتا (۳۰ روز اخیر)</span>
-            <span class="dash-kpi-value">${toPersianDigits(analytics.uniqueVisitors)}</span>
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">بازدید امروز</span>
+              <span class="dash-kpi-badge badge-neutral">۲۴ ساعت</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(analytics.todayViews ?? 0)}</div>
+            <div class="dash-kpi-sub">${toPersianDigits(analytics.todayVisitors ?? 0)} بازدیدکننده یکتای امروز</div>
+          </div>
+
+          <div class="dash-kpi-card">
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">نرخ تبدیل به سفارش</span>
+              <span class="dash-kpi-badge badge-primary">${toPersianDigits(analytics.conversionRate ?? 0)}٪</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(analytics.conversionRate ?? 0)} <span class="dash-kpi-unit">درصد</span></div>
+            <div class="dash-kpi-sub">نسبت سفارشات موفق به کل مراجعین</div>
+          </div>
+
+          <div class="dash-kpi-card">
+            <div class="dash-kpi-header">
+              <span class="dash-kpi-label">کل بازدید (۳۰ روز)</span>
+              <span class="dash-kpi-badge badge-neutral">ماهانه</span>
+            </div>
+            <div class="dash-kpi-value">${toPersianDigits(analytics.totalViews)}</div>
+            <div class="dash-kpi-sub">${toPersianDigits(analytics.uniqueVisitors)} کاربر یکتا</div>
+          </div>
+        </div>
+
+        <!-- Funnel & User Behavior Actions Card -->
+        <div class="dash-card" style="margin-bottom: var(--space-4);">
+          <div class="dash-card-header">
+            <h2 class="dash-card-title">رفتار و تعامل کاربران در سایت (قیف تبدیل)</h2>
+          </div>
+          <div class="dash-card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3);">
+              <div style="padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-alt); border: 1px solid var(--border);">
+                <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 4px;">شروع ثبت سفارش</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">${toPersianDigits(analytics.funnel?.wizardStart ?? 0)}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">انتخاب نوع خدمت و آغاز فرم</div>
+              </div>
+              <div style="padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-alt); border: 1px solid var(--border);">
+                <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 4px;">طی مراحل فرم هوشمند</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--text);">${toPersianDigits(analytics.funnel?.wizardStep ?? 0)}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">پیشروی در مراحل جابه‌جایی</div>
+              </div>
+              <div style="padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-alt); border: 1px solid var(--border);">
+                <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 4px;">ثبت نهایی سفارش</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--success);">${toPersianDigits(analytics.funnel?.orders ?? 0)}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">سفارش‌های قطعی ثبت‌شده</div>
+              </div>
+              <div style="padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-alt); border: 1px solid var(--border);">
+                <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 4px;">کلیک تماس تلفنی</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #047857;">${toPersianDigits(analytics.funnel?.callClicks ?? 0)}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">ارتباط مستقیم تلفنی از سایت</div>
+              </div>
+              <div style="padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-alt); border: 1px solid var(--border);">
+                <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 4px;">کلیک واتس‌اپ</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #059669;">${toPersianDigits(analytics.funnel?.whatsappClicks ?? 0)}</div>
+                <div style="font-size: 0.75rem; color: var(--muted);">شروع چت پیام‌رسان واتس‌اپ</div>
+              </div>
+            </div>
           </div>
         </div>
 

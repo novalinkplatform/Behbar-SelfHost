@@ -19,7 +19,7 @@ import { applyBranding, applySiteNameEverywhere } from './utils/branding.ts';
 import { forceSiteLanguageIfSingleMode, hideLanguageToggleIfSingleMode } from './i18n/languageMode.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { markAppReady } from './utils/appReady.ts';
 
@@ -54,7 +54,7 @@ function renderApp(page: LegalPage | null, settings: Awaited<ReturnType<typeof l
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   const settings = await loadSettings();
   forceSiteLanguageIfSingleMode(settings.language_mode);
   applyTheme(settings.theme);

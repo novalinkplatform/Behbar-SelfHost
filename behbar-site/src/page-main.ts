@@ -13,7 +13,7 @@ import { renderChatWidget, initChatWidget } from './components/ChatWidget.ts';
 import { renderPageView, renderPageNotFound } from './sections/PageView.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { fetchPublicPage, loadSettings } from './utils/dynamicContent.ts';
 import type { DynamicCustomPage } from './utils/dynamicContent.ts';
@@ -52,7 +52,7 @@ function renderApp(page: DynamicCustomPage | null, settings: Awaited<ReturnType<
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   const slug = currentSlug();
   const [page, settings] = await Promise.all([slug ? fetchPublicPage(slug) : Promise.resolve(null), loadSettings()]);
   forceSiteLanguageIfSingleMode(settings.language_mode);

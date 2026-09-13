@@ -3,29 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
 
     <title>درباره بهبار | ثبت آنلاین اسباب‌کشی و باربری</title>
     <meta
       name="description"
       content="بهبار پلتفرم آنلاین ثبت درخواست اسباب‌کشی و حمل بار در سراسر ایران است؛ شفاف، مستقیم و بدون واسطه."
     />
-    <link rel="canonical" href="__SITE_ORIGIN__/about" />
+    <link rel="canonical" href="https://behbarapp.ir/about" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="بهبار" />
     <meta property="og:title" content="درباره بهبار" />
     <meta property="og:description" content="بهبار پلتفرم آنلاین ثبت درخواست اسباب‌کشی و حمل بار در سراسر ایران است." />
-    <meta property="og:url" content="__SITE_ORIGIN__/about" />
+    <meta property="og:url" content="https://behbarapp.ir/about" />
     <meta property="og:locale" content="fa_IR" />
-    <meta property="og:image" content="__SITE_ORIGIN__/og-image.png" />
+    <meta property="og:image" content="https://behbarapp.ir/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="درباره بهبار" />
     <meta name="twitter:description" content="بهبار پلتفرم آنلاین ثبت درخواست اسباب‌کشی و حمل بار در سراسر ایران است." />
-    <meta name="twitter:image" content="__SITE_ORIGIN__/og-image.png" />
+    <meta name="twitter:image" content="https://behbarapp.ir/og-image.png" />
 
     <meta name="theme-color" content="#1656c9" />
     <meta name="robots" content="index, follow" />
@@ -40,14 +40,23 @@
         "@context": "https://schema.org",
         "@type": "AboutPage",
         "name": "درباره بهبار",
-        "url": "__SITE_ORIGIN__/about",
-        "isPartOf": { "@type": "WebSite", "name": "بهبار", "url": "__SITE_ORIGIN__/" },
+        "url": "https://behbarapp.ir/about",
+        "isPartOf": { "@type": "WebSite", "name": "بهبار", "url": "https://behbarapp.ir/" },
         "inLanguage": "fa"
       }
     </script>
-    <script type="module" crossorigin src="/assets/appReady-CnRz7xfg.js"></script>
-    <script type="module" crossorigin src="/assets/legal-main-ExxrBJt1.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/appReady-Bda0ReQD.css">
+      <script>
+      (function() {
+        var t = localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/appReady-JFOdjg2Y.js"></script>
+    <script type="module" crossorigin src="/assets/languageMode-BQU1S8Yk.js"></script>
+    <script type="module" crossorigin src="/assets/legal-main-Dw2w2GNc.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/appReady-PS7MQ3In.css">
   </head>
   <body>
     <div id="app"></div>

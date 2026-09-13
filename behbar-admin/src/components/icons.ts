@@ -78,4 +78,6 @@ export const icons = {
   listNumber: `<svg ${ICON_ATTRS}><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 5v3M3.3 5H4.7M3 11.5h1.6c.5 0 .9.4.9.9 0 .3-.2.5-.4.7L3 15h2.6M3.3 19h1.4c.5 0 .9-.4.9-.9s-.4-.9-.9-.9H3.3"/></svg>`,
   plugin: `<svg ${ICON_ATTRS}><path d="M12 3 4 7v10l8 4 8-4V7Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>`,
   wallet: `<svg ${ICON_ATTRS}><path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M3 7v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2H5"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  sun: `<svg ${ICON_ATTRS}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+  moon: `<svg ${ICON_ATTRS}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
 };

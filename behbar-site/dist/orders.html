@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
 
     <title>درخواست‌های من | بهبار</title>
     <meta name="description" content="مشاهده و مدیریت درخواست‌های اسباب‌کشی و باربری ثبت‌شده در بهبار." />
-    <link rel="canonical" href="__SITE_ORIGIN__/orders" />
+    <link rel="canonical" href="https://behbarapp.ir/orders" />
     <meta name="robots" content="noindex, follow" />
     <meta name="theme-color" content="#1656c9" />
 
@@ -15,11 +15,20 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <script type="module" crossorigin src="/assets/orders-BTpjmrp_.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/appReady-CnRz7xfg.js">
-    <link rel="modulepreload" crossorigin href="/assets/customerAuth-Bptkxt3g.js">
-    <link rel="modulepreload" crossorigin href="/assets/format-VCnDXlTY.js">
-    <link rel="stylesheet" crossorigin href="/assets/appReady-Bda0ReQD.css">
+      <script>
+      (function() {
+        var t = localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/orders-D-Mef2iC.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/appReady-JFOdjg2Y.js">
+    <link rel="modulepreload" crossorigin href="/assets/languageMode-BQU1S8Yk.js">
+    <link rel="modulepreload" crossorigin href="/assets/customerAuth-IN36AEms.js">
+    <link rel="modulepreload" crossorigin href="/assets/format-NciyQP_v.js">
+    <link rel="stylesheet" crossorigin href="/assets/appReady-PS7MQ3In.css">
   </head>
   <body>
     <div id="app"></div>

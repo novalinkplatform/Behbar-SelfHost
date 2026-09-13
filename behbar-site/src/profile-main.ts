@@ -18,7 +18,7 @@ import { gregorianToJalaali, formatJalaaliDate, toPersianDigits } from './utils/
 import { icons } from './components/icons.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { loadSettings } from './utils/dynamicContent.ts';
 import { applyTheme } from './utils/theme.ts';
@@ -83,7 +83,7 @@ function earliestJoinDate(orders: OrderRecord[]): string {
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   cachedSettings = await loadSettings();
   forceSiteLanguageIfSingleMode(cachedSettings.language_mode);
   applyTheme(cachedSettings.theme);

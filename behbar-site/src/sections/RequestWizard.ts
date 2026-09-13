@@ -16,6 +16,7 @@ import { geocodeCity, reverseGeocode } from '../utils/geocode.ts';
 import { formatAddressLabel } from '../utils/addresses.ts';
 import type { SavedAddress, SavedAddresses } from '../utils/addresses.ts';
 import { pick } from '../i18n/lang.ts';
+import { trackEvent } from '../utils/analytics.ts';
 
 const FLOOR_VALUES = [0, 1, 2, 3, 4, 5];
 
@@ -626,7 +627,12 @@ export function initRequestWizard(
     }
   }
 
+  let hasTrackedStart = false;
   function setServiceSelection(serviceId: string): void {
+    if (!hasTrackedStart) {
+      hasTrackedStart = true;
+      trackEvent('wizard_start', { serviceId });
+    }
     state.serviceId = serviceId;
     card?.querySelectorAll<HTMLButtonElement>('[data-service-choice]').forEach((btn) => {
       btn.classList.toggle('is-selected', btn.dataset.serviceChoice === serviceId);
@@ -714,6 +720,9 @@ export function initRequestWizard(
       next += delta;
     }
     currentStep = Math.min(TOTAL_STEPS, Math.max(1, next));
+    if (delta === 1) {
+      trackEvent('wizard_step', { step: currentStep, stepId: STEPS[currentStep - 1]?.id });
+    }
     updateStepUI();
   }
 
@@ -966,6 +975,7 @@ export function initRequestWizard(
       const originNotes = (document.getElementById('wizard-origin-notes') as HTMLTextAreaElement | null)?.value.trim();
       const destinationNotes = (document.getElementById('wizard-destination-notes') as HTMLTextAreaElement | null)?.value.trim();
       trackingCodeEl!.textContent = toPersianDigits(trackingCode);
+      trackEvent('order_submitted', { trackingCode, serviceId: state.serviceId, vehicleId: state.vehicleId });
       finalSummaryEl!.innerHTML = `
         <div class="request-summary-row"><dt>${pick('نام', 'Name')}</dt><dd>${name}</dd></div>
         <div class="request-summary-row"><dt>${pick('نوع خدمت', 'Service type')}</dt><dd>${categoryLabel()}</dd></div>

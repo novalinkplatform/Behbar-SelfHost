@@ -13,7 +13,7 @@ import { renderChatWidget, initChatWidget } from './components/ChatWidget.ts';
 import { renderMagazineIndex } from './sections/MagazineIndex.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { fetchPublicArticles, loadSettings } from './utils/dynamicContent.ts';
 import type { DynamicArticle } from './utils/dynamicContent.ts';
@@ -44,7 +44,7 @@ function renderApp(articles: DynamicArticle[], settings: Awaited<ReturnType<type
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   const [articles, settings] = await Promise.all([fetchPublicArticles(), loadSettings()]);
   forceSiteLanguageIfSingleMode(settings.language_mode);
   applyTheme(settings.theme);

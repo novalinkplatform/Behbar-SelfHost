@@ -269,6 +269,30 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
   document.getElementById('admin-account-btn')?.addEventListener('click', () => showScreen('accountSecurity'));
   document.getElementById('admin-wallet-btn')?.addEventListener('click', () => showScreen('myWallet'));
 
+  function updateThemeToggleUI(): void {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const sunIcon = document.getElementById('admin-theme-sun');
+    const moonIcon = document.getElementById('admin-theme-moon');
+    if (sunIcon && moonIcon) {
+      sunIcon.hidden = !isDark;
+      moonIcon.hidden = isDark;
+    }
+  }
+
+  updateThemeToggleUI();
+
+  document.getElementById('admin-theme-toggle-btn')?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('behbar_admin_theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('behbar_admin_theme', 'dark');
+    }
+    updateThemeToggleUI();
+  });
+
   // رویدادهای تب‌های نوار ناوبری سربرگ
   document.querySelectorAll<HTMLButtonElement>('#admin-topbar-nav .admin-topbar-tab').forEach((tabBtn) => {
     tabBtn.addEventListener('click', () => {

@@ -1076,11 +1076,26 @@ export async function sendRequestReport(id: number, message: string): Promise<{ 
   return body as { ok: boolean; error?: string; report: RequestReport };
 }
 
-// ===== Analytics (page views) =====
+// ===== Analytics (page views & user behavior) =====
+
+export interface AnalyticsFunnel {
+  visitors: number;
+  wizardStart: number;
+  wizardStep: number;
+  orders: number;
+  callClicks: number;
+  whatsappClicks: number;
+}
 
 export interface AnalyticsResponse {
   totalViews: number;
   uniqueVisitors: number;
+  todayViews?: number;
+  todayVisitors?: number;
+  activeOnline?: number;
+  conversionRate?: number;
+  funnel?: AnalyticsFunnel;
+  behaviorEvents?: { event_type: string; count: number }[];
   daily: { day: string; count: number; visitors: number }[];
   topPages: { path: string; count: number }[];
   topReferrers: { referrer: string; count: number }[];

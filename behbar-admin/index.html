@@ -6,6 +6,14 @@
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>پنل مدیریت بهبار</title>
+    <script>
+      (function() {
+        var t = localStorage.getItem('behbar_admin_theme') || localStorage.getItem('behbar_theme');
+        if (t === 'dark' || (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

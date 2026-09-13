@@ -21,7 +21,7 @@ import { initTimePicker, formatTime } from './components/TimePicker.ts';
 import { icons } from './components/icons.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { displayCityName } from './data/provinces.ts';
 import { loadSettings } from './utils/dynamicContent.ts';
@@ -99,7 +99,7 @@ function renderOrderCard(order: OrderRecord): string {
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   cachedSettings = await loadSettings();
   forceSiteLanguageIfSingleMode(cachedSettings.language_mode);
   applyTheme(cachedSettings.theme);

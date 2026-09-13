@@ -17,7 +17,7 @@ import { renderDemoBadges } from './components/DemoBadges.ts';
 import { renderStoriesStrip, initStoriesStrip } from './components/StoriesStrip.ts';
 import { initLangToggle } from './components/LangToggle.ts';
 import { bootstrapI18n } from './i18n/bootstrap.ts';
-import { trackPageView } from './utils/analytics.ts';
+import { initBehaviorTracking } from './utils/analytics.ts';
 import { pick } from './i18n/lang.ts';
 import { loadSettings, fetchPublicTestimonials, fetchPublicStories } from './utils/dynamicContent.ts';
 import type { PublicTestimonial, PublicStory, HomepageSection } from './utils/dynamicContent.ts';
@@ -89,7 +89,7 @@ function scrollToHashIfPresent(): void {
 }
 
 async function init(): Promise<void> {
-  trackPageView();
+  initBehaviorTracking();
   const [settings, testimonials, stories] = await Promise.all([loadSettings(), fetchPublicTestimonials(), fetchPublicStories()]);
   forceSiteLanguageIfSingleMode(settings.language_mode);
   applyTheme(settings.theme);

@@ -4619,7 +4619,7 @@ async function adminDeleteFleetVehicle(request: Request, url: URL, env: Env, ori
   return json({ ok: true }, 200, origin);
 }
 
-// ===== Analytics (page views) =====
+// ===== Analytics (page views & user behavior events) =====
 
 const DEVICE_PATTERN = /mobile|android|iphone/i;
 
@@ -4627,6 +4627,38 @@ interface TrackBody {
   visitorId?: unknown;
   path?: unknown;
   referrer?: unknown;
+}
+
+interface TrackEventBody {
+  visitorId?: unknown;
+  sessionId?: unknown;
+  eventType?: unknown;
+  eventData?: unknown;
+  path?: unknown;
+}
+
+let userEventsTableEnsured = false;
+async function ensureUserEventsTable(db: Env['DB']): Promise<void> {
+  if (userEventsTableEnsured) return;
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS user_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        visitor_id TEXT NOT NULL,
+        session_id TEXT,
+        event_type TEXT NOT NULL,
+        event_data TEXT,
+        path TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_user_events_created_at ON user_events(created_at);
+      CREATE INDEX IF NOT EXISTS idx_user_events_type ON user_events(event_type);
+      CREATE INDEX IF NOT EXISTS idx_user_events_visitor ON user_events(visitor_id);
+    `);
+    userEventsTableEnsured = true;
+  } catch {
+    userEventsTableEnsured = true;
+  }
 }
 
 // ردیابی بازدید هرگز نباید یک خطای قابل‌مشاهده در سایت مشتری ایجاد کند — همیشه 200 برمی‌گردانیم،
@@ -4654,14 +4686,63 @@ async function publicTrackPageView(request: Request, env: Env, origin: string | 
   return json({ ok: true }, 200, origin);
 }
 
+async function publicTrackEvent(request: Request, env: Env, origin: string | null): Promise<Response> {
+  let body: TrackEventBody;
+  try {
+    body = (await request.json()) as TrackEventBody;
+  } catch {
+    return json({ ok: true }, 200, origin);
+  }
+
+  const visitorId = typeof body.visitorId === 'string' ? body.visitorId.trim().slice(0, 100) : '';
+  const eventType = typeof body.eventType === 'string' ? body.eventType.trim().slice(0, 50) : '';
+  if (!visitorId || !eventType) return json({ ok: true }, 200, origin);
+
+  const sessionId = typeof body.sessionId === 'string' ? body.sessionId.trim().slice(0, 100) : null;
+  const path = typeof body.path === 'string' ? body.path.trim().slice(0, 300) : null;
+  const eventData = body.eventData ? JSON.stringify(body.eventData).slice(0, 1000) : null;
+
+  await ensureUserEventsTable(env.DB);
+
+  try {
+    await env.DB.prepare('INSERT INTO user_events (visitor_id, session_id, event_type, event_data, path) VALUES (?,?,?,?,?)')
+      .bind(visitorId, sessionId, eventType, eventData, path)
+      .run();
+  } catch {
+    /* fire and forget */
+  }
+
+  return json({ ok: true }, 200, origin);
+}
+
 async function adminGetAnalytics(request: Request, env: Env, origin: string | null): Promise<Response> {
   if (!(await requireStaff(request, env, 'dashboard'))) return json({ error: 'دسترسی نداری.' }, 401, origin);
 
-  const [totalViewsRow, uniqueVisitorsRow, dailyRows, topPages, topReferrers, deviceRows] = await Promise.all([
+  await ensureUserEventsTable(env.DB);
+
+  const [
+    totalViewsRow,
+    uniqueVisitorsRow,
+    todayViewsRow,
+    todayVisitorsRow,
+    activeOnlineRow,
+    ordersCountRow,
+    dailyRows,
+    topPages,
+    topReferrers,
+    deviceRows,
+    behaviorEventsRows,
+  ] = await Promise.all([
     env.DB.prepare("SELECT COUNT(*) as count FROM page_views WHERE created_at >= datetime('now', '-30 days')").first<{ count: number }>(),
     env.DB.prepare(
       "SELECT COUNT(DISTINCT visitor_id) as count FROM page_views WHERE created_at >= datetime('now', '-30 days')",
     ).first<{ count: number }>(),
+    env.DB.prepare("SELECT COUNT(*) as count FROM page_views WHERE created_at >= datetime('now', 'start of day')").first<{ count: number }>(),
+    env.DB.prepare("SELECT COUNT(DISTINCT visitor_id) as count FROM page_views WHERE created_at >= datetime('now', 'start of day')").first<{ count: number }>(),
+    env.DB.prepare(
+      "SELECT COUNT(DISTINCT visitor_id) as count FROM page_views WHERE created_at >= datetime('now', '-15 minutes')",
+    ).first<{ count: number }>(),
+    env.DB.prepare("SELECT COUNT(*) as count FROM requests WHERE created_at >= datetime('now', '-30 days')").first<{ count: number }>(),
     env.DB.prepare(
       `SELECT substr(created_at, 1, 10) as day, COUNT(*) as count, COUNT(DISTINCT visitor_id) as visitors
        FROM page_views WHERE created_at >= datetime('now', '-13 days') GROUP BY day ORDER BY day ASC`,
@@ -4677,12 +4758,39 @@ async function adminGetAnalytics(request: Request, env: Env, origin: string | nu
     env.DB.prepare(
       `SELECT device, COUNT(*) as count FROM page_views WHERE created_at >= datetime('now', '-30 days') GROUP BY device`,
     ).all<{ device: string; count: number }>(),
+    env.DB.prepare(
+      `SELECT event_type, COUNT(*) as count FROM user_events WHERE created_at >= datetime('now', '-30 days') GROUP BY event_type ORDER BY count DESC`,
+    ).all<{ event_type: string; count: number }>().catch(() => ({ results: [] })),
   ]);
+
+  const uniqueVisitors = uniqueVisitorsRow?.count ?? 0;
+  const ordersCount = ordersCountRow?.count ?? 0;
+  const conversionRate = uniqueVisitors > 0 ? Math.round((ordersCount / uniqueVisitors) * 1000) / 10 : 0;
+
+  const eventsMap: Record<string, number> = {};
+  for (const row of (behaviorEventsRows?.results ?? [])) {
+    eventsMap[row.event_type] = row.count;
+  }
+
+  const funnel = {
+    visitors: uniqueVisitors,
+    wizardStart: eventsMap['wizard_start'] ?? 0,
+    wizardStep: eventsMap['wizard_step'] ?? 0,
+    orders: ordersCount,
+    callClicks: eventsMap['call_click'] ?? 0,
+    whatsappClicks: eventsMap['whatsapp_click'] ?? 0,
+  };
 
   return json(
     {
       totalViews: totalViewsRow?.count ?? 0,
-      uniqueVisitors: uniqueVisitorsRow?.count ?? 0,
+      uniqueVisitors,
+      todayViews: todayViewsRow?.count ?? 0,
+      todayVisitors: todayVisitorsRow?.count ?? 0,
+      activeOnline: activeOnlineRow?.count ?? 0,
+      conversionRate,
+      funnel,
+      behaviorEvents: behaviorEventsRows?.results ?? [],
       daily: dailyRows.results ?? [],
       topPages: topPages.results ?? [],
       topReferrers: topReferrers.results ?? [],
@@ -6138,6 +6246,9 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       }
       if (url.pathname === '/api/track' && request.method === 'POST') {
         return await publicTrackPageView(request, env, origin);
+      }
+      if (url.pathname === '/api/track/event' && request.method === 'POST') {
+        return await publicTrackEvent(request, env, origin);
       }
       if (url.pathname === '/api/admin/analytics' && request.method === 'GET') {
         return await adminGetAnalytics(request, env, origin);
