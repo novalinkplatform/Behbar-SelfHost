@@ -28,6 +28,9 @@ export function renderLoginView(): string {
           <div class="login-input-wrapper">
             <span class="icon">${icons.lock}</span>
             <input type="password" id="login-password" autocomplete="current-password" />
+            <button type="button" class="login-toggle-password" id="login-toggle-password" title="نمایش رمز" aria-label="نمایش رمز عبور">
+              <span class="login-eye-icon">${icons.eye}</span>
+            </button>
           </div>
         </div>
         <p class="error-text" id="login-error" hidden></p>
@@ -72,6 +75,20 @@ export function initLoginView(onSuccess: (staff: StaffInfo) => void): void {
     usernameInput.value = 'test';
     passwordInput.value = '12345678';
     document.getElementById('login-demo-notice')!.hidden = false;
+  }
+
+  const togglePasswordBtn = document.getElementById('login-toggle-password') as HTMLButtonElement | null;
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      togglePasswordBtn.title = isPassword ? 'مخفی کردن رمز' : 'نمایش رمز';
+      togglePasswordBtn.setAttribute('aria-label', isPassword ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور');
+      const eyeSpan = togglePasswordBtn.querySelector('.login-eye-icon');
+      if (eyeSpan) {
+        eyeSpan.innerHTML = isPassword ? icons.eyeOff : icons.eye;
+      }
+    });
   }
 
   let pendingChallengeToken = '';

@@ -62,6 +62,7 @@ export const icons = {
   maleAvatar: `<svg ${ICON_ATTRS}><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>`,
   femaleAvatar: `<svg ${ICON_ATTRS}><circle cx="12" cy="7.5" r="4"/><path d="M12 11.5v6M9 15h6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>`,
   eye: `<svg ${ICON_ATTRS}><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeOff: `<svg ${ICON_ATTRS}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
   history: `<svg ${ICON_ATTRS}><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg>`,
   link: `<svg ${ICON_ATTRS}><path d="M9.5 14.5 14.5 9.5"/><path d="M11 6.5 12.6 4.9a3.7 3.7 0 0 1 5.2 5.2L16 12"/><path d="M13 17.5 11.4 19.1a3.7 3.7 0 0 1-5.2-5.2L8 12"/></svg>`,
   externalLink: `<svg ${ICON_ATTRS}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,

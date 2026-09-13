@@ -70,7 +70,7 @@
   border-radius: var(--radius-md);
   background-color: var(--surface);
   padding-inline-start: 2.5rem;
-  padding-inline-end: var(--space-3);
+  padding-inline-end: 2.6rem;
   font-size: 0.95rem;
 }
 
@@ -78,6 +78,44 @@
   outline: none;
   border-color: var(--secondary);
   background-color: var(--background);
+}
+
+.login-toggle-password {
+  position: absolute;
+  inset-inline-end: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm, 4px);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.login-toggle-password:hover {
+  color: var(--primary);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.login-toggle-password:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 1px;
+}
+
+.login-toggle-password .login-eye-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.login-toggle-password svg {
+  width: 18px;
+  height: 18px;
 }
 
 .login-2fa-hint {
