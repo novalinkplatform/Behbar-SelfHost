@@ -16,7 +16,6 @@ export function renderSaleView(): string {
             <a href="#features">ویژگی‌های کلیدی</a>
             <a href="#showcase">پیش‌نمایش زنده</a>
             <a href="#tech-specs">مشخصات فنی</a>
-            <a href="#faq">سوالات متداول</a>
           </nav>
         </div>
         <div class="nobex-nav-left">

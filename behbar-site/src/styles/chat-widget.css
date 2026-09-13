@@ -331,17 +331,17 @@ html[dir='ltr'] .chat-widget-send .icon {
 
   html.quick-actions-right .chat-widget-panel,
   html:not(.quick-actions-left) .chat-widget-panel {
-    right: 20px;
-    left: auto;
-    inset-inline-end: auto;
-    inset-inline-start: auto;
+    inset-inline-start: 20px !important;
+    inset-inline-end: auto !important;
+    right: 20px !important;
+    left: auto !important;
   }
 
   html.quick-actions-left .chat-widget-panel {
-    left: 20px;
-    right: auto;
-    inset-inline-end: auto;
-    inset-inline-start: auto;
+    inset-inline-end: 20px !important;
+    inset-inline-start: auto !important;
+    left: 20px !important;
+    right: auto !important;
   }
 }
 

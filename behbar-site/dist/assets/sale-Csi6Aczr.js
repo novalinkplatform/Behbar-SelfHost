@@ -1,4 +1,4 @@
-import{n as e,t}from"./appReady-D0myfZwC.js";import{t as n}from"./ContentBlock-BDMtLLeA.js";function r(){return`
+import{n as e,t}from"./appReady-u0XdWzsQ.js";import{t as n}from"./ContentBlock-lfnx2wq9.js";function r(){return`
   <div class="nobex-wrapper">
     <!-- Fixed Luxury Dark Navbar -->
     <header class="nobex-navbar">
@@ -15,7 +15,6 @@ import{n as e,t}from"./appReady-D0myfZwC.js";import{t as n}from"./ContentBlock-B
             <a href="#features">ویژگی‌های کلیدی</a>
             <a href="#showcase">پیش‌نمایش زنده</a>
             <a href="#tech-specs">مشخصات فنی</a>
-            <a href="#faq">سوالات متداول</a>
           </nav>
         </div>
         <div class="nobex-nav-left">

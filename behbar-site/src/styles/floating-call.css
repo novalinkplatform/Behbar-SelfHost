@@ -72,19 +72,19 @@
   /* چیدمان سمت راست (پیش‌فرض یا کلاس quick-actions-right) */
   html.quick-actions-right .header-quick-actions,
   html:not(.quick-actions-left) .header-quick-actions {
-    right: 20px;
-    left: auto;
-    inset-inline-end: auto;
-    inset-inline-start: auto;
+    inset-inline-start: 20px !important;
+    inset-inline-end: auto !important;
+    right: 20px !important;
+    left: auto !important;
     align-items: flex-end;
   }
 
   /* چیدمان سمت چپ (کلاس quick-actions-left) */
   html.quick-actions-left .header-quick-actions {
-    left: 20px;
-    right: auto;
-    inset-inline-end: auto;
-    inset-inline-start: auto;
+    inset-inline-end: 20px !important;
+    inset-inline-start: auto !important;
+    left: 20px !important;
+    right: auto !important;
     align-items: flex-start;
   }
 
