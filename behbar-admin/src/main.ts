@@ -97,17 +97,16 @@ type AdminScreen = 'home' | 'requests' | 'content' | 'personnel' | 'dashboard' |
 // زیرمجموعه‌ی «مدیریت محتوا»، کارمندان/فرصت‌های شغلی زیرمجموعه‌ی «مدیریت پرسنل»، و سفارش‌ها/بازدیدکنندگان/
 // عملکرد کارمندان زیرمجموعه‌ی «آمار و گزارش» هستند).
 function screenParent(screen: AdminScreen): AdminScreen | null {
-  if (screen === 'dashboard' || screen === 'pipeline') return null;
-  if (screen === 'home') return 'dashboard';
-  if (screen === 'requests' || screen === 'content' || screen === 'personnel') return 'home';
-  if (screen === 'map') return 'dashboard';
+  if (screen === 'home') return null;
+  if (screen === 'requests' || screen === 'content' || screen === 'personnel' || screen === 'dashboard' || screen === 'settings' || screen === 'plugins' || screen === 'chat' || screen === 'fleet') return 'home';
+  if (screen === 'pipeline' || screen === 'map') return 'requests';
   if (screen === 'magazine' || screen === 'testimonials' || screen === 'stories' || screen === 'seo' || screen === 'media') return 'content';
   if (screen === 'staff' || screen === 'jobApplications' || screen === 'roles' || screen === 'activityLog' || screen === 'payroll') return 'personnel';
   if (screen === 'staffHistory') return 'staff';
   if (screen === 'dashboardOrders' || screen === 'dashboardVisitors' || screen === 'dashboardStaff') return 'dashboard';
   if (screen === 'magazine-editor') return 'magazine';
   if (screen === 'page-editor' || screen === 'pages') return 'settings';
-  return 'dashboard';
+  return 'home';
 }
 
 function getApp(): HTMLElement {
@@ -123,7 +122,7 @@ function showLogin(): void {
   void applySiteNameToAdminChrome();
 }
 
-let currentScreen: AdminScreen = 'dashboard';
+let currentScreen: AdminScreen = 'home';
 let viewingStaffHistory: StaffRecord | null = null;
 
 function showScreen(screen: AdminScreen, editingDetailId: number | null = null): void {
@@ -133,19 +132,10 @@ function showScreen(screen: AdminScreen, editingDetailId: number | null = null):
   if (!container || !staff) return;
 
   currentScreen = screen;
-  if (backBtn) backBtn.hidden = screen === 'dashboard' || screen === 'pipeline';
+  if (backBtn) backBtn.hidden = screen === 'home';
   saveScreenState({
     screen,
     extra: (screen === 'magazine-editor' || screen === 'page-editor') ? editingDetailId : screen === 'staffHistory' ? viewingStaffHistory : undefined,
-  });
-
-  // به‌روزرسانی وضعیت تب‌های فعال در نوار ناوبری بالای صفحه
-  document.querySelectorAll<HTMLButtonElement>('#admin-topbar-nav .admin-topbar-tab').forEach((tabBtn) => {
-    const tab = tabBtn.dataset.adminTab;
-    const isActive =
-      (tab === 'dashboard' && (screen === 'dashboard' || screen === 'dashboardOrders' || screen === 'dashboardVisitors' || screen === 'dashboardStaff')) ||
-      (tab === 'pipeline' && screen === 'pipeline');
-    tabBtn.classList.toggle('is-active', Boolean(isActive));
   });
 
   if (screen === 'home') {
@@ -293,17 +283,9 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
     updateThemeToggleUI();
   });
 
-  // رویدادهای تب‌های نوار ناوبری سربرگ
-  document.querySelectorAll<HTMLButtonElement>('#admin-topbar-nav .admin-topbar-tab').forEach((tabBtn) => {
-    tabBtn.addEventListener('click', () => {
-      const target = tabBtn.dataset.adminTab as AdminScreen | undefined;
-      if (target) showScreen(target);
-    });
-  });
-
   // کلیک روی نشان بهبار
   document.getElementById('admin-logo-btn')?.addEventListener('click', () => {
-    showScreen('dashboard');
+    showScreen('home');
   });
 
   if (hasPermission(staff, 'settings')) void loadSidebarVersion();
@@ -323,7 +305,7 @@ function showAdminShell(staff: StaffInfo, restore = false): void {
   } else if (saved?.screen) {
     showScreen(saved.screen as AdminScreen);
   } else {
-    showScreen('dashboard');
+    showScreen('home');
   }
 }
 

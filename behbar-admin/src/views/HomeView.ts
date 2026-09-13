@@ -20,14 +20,14 @@ export function renderHomeView(staff: StaffInfo): string {
   const showRequests = hasPermission(staff, 'pipeline') || hasPermission(staff, 'map');
 
   const tiles: string[] = [];
+  tiles.push(tile('dashboard', icons.chart, 'داشبورد'));
   if (showRequests) tiles.push(tile('requests', icons.columns, 'درخواست‌ها'));
-  if (hasPermission(staff, 'dashboard')) tiles.push(tile('dashboard', icons.chart, 'داشبورد'));
+  if (hasPermission(staff, 'staff')) tiles.push(tile('fleet', icons.truck, 'مدیریت ناوگان حمل‌ونقل'));
+  if (showSettings) tiles.push(tile('settings', icons.settings, 'تنظیمات سایت'));
   if (hasPermission(staff, 'chat')) tiles.push(tile('chat', icons.chat, 'چت پشتیبانی'));
   if (showContent) tiles.push(tile('content', icons.grid, 'مدیریت محتوا'));
   if (showPersonnel) tiles.push(tile('personnel', icons.users, 'مدیریت پرسنل'));
-  if (hasPermission(staff, 'staff')) tiles.push(tile('fleet', icons.truck, 'مدیریت ناوگان حمل‌ونقل'));
   if (hasPermission(staff, 'plugins')) tiles.push(tile('plugins', icons.plugin, 'افزونه‌ها'));
-  if (showSettings) tiles.push(tile('settings', icons.settings, 'تنظیمات سایت'));
 
   return `<div class="home-grid">${tiles.join('')}</div>`;
 }

@@ -6,21 +6,6 @@ import { renderLicenseLockBanner } from './LicenseLockBanner.ts';
 import { renderDemoAccountBanner } from './DemoAccountBanner.ts';
 
 export function renderShell(staff: StaffInfo): string {
-  const tabs: string[] = [
-    `
-      <button type="button" class="admin-topbar-tab" data-admin-tab="dashboard">
-        <span class="icon">${icons.chart}</span>
-        <span>داشبورد</span>
-      </button>
-    `,
-    `
-      <button type="button" class="admin-topbar-tab" data-admin-tab="pipeline">
-        <span class="icon">${icons.columns}</span>
-        <span>درخواست‌ها</span>
-      </button>
-    `,
-  ];
-
   return `
     <div class="admin-shell">
       <header class="admin-topbar">
@@ -33,9 +18,6 @@ export function renderShell(staff: StaffInfo): string {
             <img class="admin-logo-mark" src="/favicon.svg" alt="" />
             <span class="admin-logo-title">بهبار</span>
           </div>
-          <nav class="admin-topbar-nav" id="admin-topbar-nav" aria-label="ناوبری اصلی">
-            ${tabs.join('')}
-          </nav>
         </div>
         <div class="admin-topbar-end">
           <span class="admin-license-badge admin-license-badge-${staff.licenseSummary?.type || 'trial'}">
