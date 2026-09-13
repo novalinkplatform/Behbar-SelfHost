@@ -345,6 +345,13 @@ export function renderSettingsView(): string {
             <option value="fixed">فیکس (با اسکرول صفحه جابه‌جا می‌شود)</option>
           </select>
         </div>
+        <div class="form-field" style="margin-top: 12px;">
+          <label for="theme-quick-actions-position">سمت قرارگیری در وب (دسکتاپ)</label>
+          <select id="theme-quick-actions-position">
+            <option value="right">سمت راست (پیش‌فرض)</option>
+            <option value="left">سمت چپ</option>
+          </select>
+        </div>
       </div>
 
       <div class="editor-sidebar-card">
@@ -889,6 +896,10 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
     const themeSettings = (settings.theme as Record<string, string> | undefined) ?? {};
     (document.getElementById('theme-quick-actions-style') as HTMLSelectElement).value =
       themeSettings.quickActionsStyle === 'fixed' ? 'fixed' : 'floating';
+    const posSelect = document.getElementById('theme-quick-actions-position') as HTMLSelectElement | null;
+    if (posSelect) {
+      posSelect.value = themeSettings.quickActionsPosition === 'left' ? 'left' : 'right';
+    }
   }
 
   document.querySelectorAll<HTMLButtonElement>('[data-save-setting="contact"]').forEach((btn) => {
@@ -905,9 +916,10 @@ export function initSettingsView(onNavigate?: (screen: string, detail?: unknown)
           await updateSetting('contact', contactData);
           settings.contact = contactData;
           const quickActionsStyle = (document.getElementById('theme-quick-actions-style') as HTMLSelectElement).value;
+          const quickActionsPosition = (document.getElementById('theme-quick-actions-position') as HTMLSelectElement)?.value ?? 'right';
           const existingTheme = (settings.theme as Record<string, string> | undefined) ?? {};
-          await updateSetting('theme', { ...existingTheme, quickActionsStyle });
-          settings.theme = { ...existingTheme, quickActionsStyle };
+          await updateSetting('theme', { ...existingTheme, quickActionsStyle, quickActionsPosition });
+          settings.theme = { ...existingTheme, quickActionsStyle, quickActionsPosition };
         });
         showSaved();
       } catch (err) {

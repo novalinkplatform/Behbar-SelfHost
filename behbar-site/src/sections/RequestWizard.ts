@@ -162,7 +162,7 @@ const EUROPEAN_COUNTRIES: [string, string][] = [
 function renderCountrySelect(prefix: string, label: string): string {
   const option = ([fa, en]: [string, string]) => `<option value="${fa}">${pick(fa, en)}</option>`;
   return `
-    <div class="form-field">
+    <div class="form-field wizard-country-wrap" id="${prefix}-country-wrap" hidden>
       <label for="${prefix}-country">${pick(`کشور ${label}`, `${label} country`)}</label>
       <div class="select-wrapper">
         <select id="${prefix}-country">
@@ -181,7 +181,7 @@ function renderCountrySelect(prefix: string, label: string): string {
   `;
 }
 
-function renderLocationStep(prefix: string, label: string, note?: string, showCountry?: boolean): string {
+function renderLocationStep(prefix: string, label: string, note?: string): string {
   return `
     ${note ? `<p class="wizard-vehicle-note">${note}</p>` : ''}
     <div class="wizard-saved-addresses" id="${prefix}-saved-addresses" hidden>
@@ -189,7 +189,7 @@ function renderLocationStep(prefix: string, label: string, note?: string, showCo
       <div class="wizard-saved-address-list" id="${prefix}-saved-address-list"></div>
     </div>
     ${renderLocationSelect(prefix, label)}
-    ${showCountry ? renderCountrySelect(prefix, label) : ''}
+    ${renderCountrySelect(prefix, label)}
     <div class="form-field">
       <span class="field-label">${pick('نوع مکان', 'Property type')}</span>
       <div class="wizard-choice-row" id="${prefix}-property-row">
@@ -300,11 +300,11 @@ export function renderRequestWizard(
         </section>
 
         <section class="request-panel" data-panel="3" hidden>
-          ${renderLocationStep('wizard-origin', pick('مبدأ', 'Origin'), originNote, showCountry)}
+          ${renderLocationStep('wizard-origin', pick('مبدأ', 'Origin'), originNote)}
         </section>
 
         <section class="request-panel" data-panel="4" hidden>
-          ${renderLocationStep('wizard-destination', pick('مقصد', 'Destination'), undefined, showCountry)}
+          ${renderLocationStep('wizard-destination', pick('مقصد', 'Destination'))}
         </section>
 
         <section class="request-panel" data-panel="5" hidden>
@@ -575,6 +575,54 @@ export function initRequestWizard(
   wireCityGeocode('wizard-origin-city', origin.getValue, originMap);
   wireCityGeocode('wizard-destination-city', destination.getValue, destinationMap);
 
+  const COUNTRY_COORDINATES: Record<string, [number, number]> = {
+    'ایران': [35.6892, 51.3890],
+    'ترکیه': [39.9334, 32.8597],
+    'عراق': [33.3152, 44.3661],
+    'امارات': [25.2048, 55.2708],
+    'امارات متحده عربی': [25.2048, 55.2708],
+    'آلمان': [52.5200, 13.4050],
+    'روسیه': [55.7558, 37.6173],
+    'چین': [39.9042, 116.4074],
+    'ارمنستان': [40.1792, 44.4991],
+    'آذربایجان': [40.4093, 49.8671],
+    'گرجستان': [41.7151, 44.8271],
+    'افغانستان': [34.5553, 69.2075],
+    'پاکستان': [33.6844, 73.0479],
+    'عمان': [23.5880, 58.3829],
+    'قطر': [25.2854, 51.5310],
+    'کویت': [29.3759, 47.9774],
+    'ترکمنستان': [37.9601, 58.3261],
+    'قزاقستان': [51.1694, 71.4491],
+    'ازبکستان': [41.2995, 69.2401],
+    'تاجیکستان': [38.5598, 68.7870],
+    'فرانسه': [48.8566, 2.3522],
+    'ایتالیا': [41.9028, 12.4964],
+    'هلند': [52.3676, 4.9041],
+    'انگلستان': [51.5074, -0.1278],
+  };
+
+  function wireCountryMapFly(selectId: string, map: ReturnType<typeof initLocationMap>): void {
+    const select = document.getElementById(selectId) as HTMLSelectElement | null;
+    if (!select || !map) return;
+    select.addEventListener('change', () => {
+      const country = select.value.trim();
+      if (country === 'ایران') {
+        map.resetToIran();
+      } else if (COUNTRY_COORDINATES[country]) {
+        const [lat, lng] = COUNTRY_COORDINATES[country];
+        map.setBoundsMode('global');
+        map.setCenter(lat, lng, 6);
+      }
+    });
+  }
+  wireCountryMapFly('wizard-origin-country', originMap);
+  wireCountryMapFly('wizard-destination-country', destinationMap);
+
+  // در ابتدا نقشه روی ایران مقید است
+  originMap?.setBoundsMode('iran');
+  destinationMap?.setBoundsMode('iran');
+
   const state: WizardState = {
     serviceId: null,
     vehicleId: null,
@@ -637,6 +685,27 @@ export function initRequestWizard(
     card?.querySelectorAll<HTMLButtonElement>('[data-service-choice]').forEach((btn) => {
       btn.classList.toggle('is-selected', btn.dataset.serviceChoice === serviceId);
     });
+
+    const isTransit = serviceId === 'transit';
+    const showCountry = Boolean(serviceCities?.internationalShippingEnabled) && isTransit;
+
+    const originCountryWrap = document.getElementById('wizard-origin-country-wrap');
+    const destCountryWrap = document.getElementById('wizard-destination-country-wrap');
+    if (originCountryWrap) originCountryWrap.hidden = !showCountry;
+    if (destCountryWrap) destCountryWrap.hidden = !showCountry;
+
+    if (isTransit) {
+      originMap?.setBoundsMode('global');
+      destinationMap?.setBoundsMode('global');
+    } else {
+      // اگر ترابری جهانی انتخاب نکرده، نقشه فقط روی ایران بمونه
+      originMap?.setBoundsMode('iran');
+      destinationMap?.setBoundsMode('iran');
+      const originCountrySelect = document.getElementById('wizard-origin-country') as HTMLSelectElement | null;
+      const destCountrySelect = document.getElementById('wizard-destination-country') as HTMLSelectElement | null;
+      if (originCountrySelect) originCountrySelect.value = IRAN[0];
+      if (destCountrySelect) destCountrySelect.value = IRAN[0];
+    }
 
     refreshVehicleAvailability();
     updateNextButtonLabel();

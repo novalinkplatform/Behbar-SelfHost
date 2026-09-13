@@ -31,6 +31,14 @@ export function applyTheme(theme?: ThemeSettings): void {
   // پیش‌فرض «شناور» که همیشه روی صفحه ثابت می‌مانند — یک تنظیم سراسری، مستقل از تک‌تک صفحات.
   document.documentElement.classList.toggle('quick-actions-fixed', theme?.quickActionsStyle === 'fixed');
 
+  // جهت قرارگیری دکمه‌های تماس و چت روی وب (دسکتاپ): راست (پیش‌فرض) یا چپ
+  const savedSide = localStorage.getItem('behbar_quick_actions_side');
+  const activeSide = savedSide === 'left' || savedSide === 'right'
+    ? savedSide
+    : (theme?.quickActionsPosition === 'left' ? 'left' : 'right');
+  document.documentElement.classList.toggle('quick-actions-left', activeSide === 'left');
+  document.documentElement.classList.toggle('quick-actions-right', activeSide === 'right');
+
   if (!theme) return;
   const root = document.documentElement.style;
   for (const [key, varName] of Object.entries(THEME_VAR_NAMES)) {

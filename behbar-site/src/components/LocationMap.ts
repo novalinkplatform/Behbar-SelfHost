@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { pick } from '../i18n/lang.ts';
 
 const TEHRAN: [number, number] = [35.6892, 51.389];
-const IRAN_BOUNDS: L.LatLngBoundsExpression = [
+const IRAN_BOUNDS: [[number, number], [number, number]] = [
   [24.5, 43.0],
   [40.5, 63.8],
 ];
@@ -31,6 +31,8 @@ export interface LocationMapController {
   getPosition: () => { lat: number; lng: number };
   hasInteracted: () => boolean;
   refresh: () => void;
+  setBoundsMode: (mode: 'iran' | 'global') => void;
+  resetToIran: () => void;
 }
 
 export function initLocationMap(id: string, onUserMove?: (lat: number, lng: number) => void): LocationMapController | null {
@@ -92,6 +94,37 @@ export function initLocationMap(id: string, onUserMove?: (lat: number, lng: numb
     hasInteracted: () => interacted,
     refresh: () => {
       map.invalidateSize();
+    },
+    setBoundsMode: (mode: 'iran' | 'global') => {
+      if (mode === 'iran') {
+        map.setMaxBounds(IRAN_BOUNDS);
+        map.setMinZoom(5);
+        const pos = marker.getLatLng();
+        const bounds = L.latLngBounds(IRAN_BOUNDS[0], IRAN_BOUNDS[1]);
+        if (!bounds.contains(pos)) {
+          marker.setLatLng(TEHRAN);
+          map.setView(TEHRAN, 6, { animate: false });
+        }
+      } else {
+        try {
+          (map as any).setMaxBounds(null);
+        } catch {
+          (map as any).options.maxBounds = null;
+          (map as any).off('moveend', (map as any)._panInsideMaxBounds);
+        }
+        map.setMinZoom(2);
+      }
+      map.invalidateSize();
+    },
+    resetToIran: () => {
+      try {
+        map.setMaxBounds(IRAN_BOUNDS);
+      } catch {
+        // fallback
+      }
+      map.setMinZoom(5);
+      marker.setLatLng(TEHRAN);
+      map.setView(TEHRAN, 6, { animate: true });
     },
   };
 }

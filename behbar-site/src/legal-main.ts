@@ -1,3 +1,4 @@
+import { renderQuickActions, initQuickActions } from './components/QuickActions.ts';
 import '@fontsource/vazirmatn/400.css';
 import '@fontsource/vazirmatn/500.css';
 import '@fontsource/vazirmatn/600.css';
@@ -7,9 +8,6 @@ import './styles/main.css';
 import { renderHeader, initHeader } from './components/Header.ts';
 import { renderFooter, initFooter } from './components/Footer.ts';
 import { renderBottomNav, initBottomNav } from './components/BottomNav.ts';
-import { renderFloatingCallButton } from './components/FloatingCallButton.ts';
-import { renderFloatingWhatsAppButton } from './components/FloatingWhatsAppButton.ts';
-import { renderChatWidget, initChatWidget } from './components/ChatWidget.ts';
 import { renderLegalPageView } from './sections/LegalPageView.ts';
 import { loadSettings } from './utils/dynamicContent.ts';
 import type { LegalPage } from './utils/dynamicContent.ts';
@@ -45,11 +43,7 @@ function renderApp(page: LegalPage | null, settings: Awaited<ReturnType<typeof l
     </main>
     ${renderFooter(settings)}
     ${renderBottomNav()}
-    <div class="header-quick-actions">
-      ${renderFloatingCallButton(settings)}
-      ${renderFloatingWhatsAppButton(settings)}
-      ${renderChatWidget()}
-    </div>
+    ${renderQuickActions(settings)}
   `;
 }
 
@@ -69,7 +63,7 @@ async function init(): Promise<void> {
   initFooter(settings);
   initBottomNav();
   initLangToggle();
-  initChatWidget();
+  initQuickActions(settings);
 }
 
 bootstrapI18n(() => void init());

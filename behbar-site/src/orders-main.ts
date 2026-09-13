@@ -1,3 +1,4 @@
+import { renderQuickActions, initQuickActions } from './components/QuickActions.ts';
 import '@fontsource/vazirmatn/400.css';
 import '@fontsource/vazirmatn/500.css';
 import '@fontsource/vazirmatn/600.css';
@@ -7,9 +8,6 @@ import './styles/main.css';
 import { renderHeader, initHeader } from './components/Header.ts';
 import { renderFooter, initFooter } from './components/Footer.ts';
 import { renderBottomNav, initBottomNav } from './components/BottomNav.ts';
-import { renderFloatingCallButton } from './components/FloatingCallButton.ts';
-import { renderFloatingWhatsAppButton } from './components/FloatingWhatsAppButton.ts';
-import { renderChatWidget, initChatWidget } from './components/ChatWidget.ts';
 import { renderOrdersView, renderOrderEditForm } from './sections/OrdersView.ts';
 import { fetchOrdersByPhone, rescheduleOrder, cancelOrder, EDITABLE_ORDER_STATUSES } from './utils/api.ts';
 import type { OrderRecord } from './utils/api.ts';
@@ -58,11 +56,7 @@ function renderApp(): void {
     </main>
     ${renderFooter(cachedSettings)}
     ${renderBottomNav()}
-    <div class="header-quick-actions">
-      ${renderFloatingCallButton(cachedSettings)}
-      ${renderFloatingWhatsAppButton(cachedSettings)}
-      ${renderChatWidget()}
-    </div>
+    ${renderQuickActions(cachedSettings)}
   `;
 }
 
@@ -113,7 +107,7 @@ async function init(): Promise<void> {
   initFooter(cachedSettings);
   initBottomNav();
   initLangToggle();
-  initChatWidget();
+  initQuickActions(cachedSettings);
 
   const loadingEl = document.getElementById('orders-loading');
   const loginPrompt = document.getElementById('orders-login-prompt');

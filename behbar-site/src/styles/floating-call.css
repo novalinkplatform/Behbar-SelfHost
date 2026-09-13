@@ -22,6 +22,41 @@
   }
 }
 
+.quick-actions-side-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+}
+
+.quick-actions-side-toggle:hover {
+  opacity: 1;
+  color: var(--primary);
+  background: var(--surface-alt);
+  transform: scale(1.08);
+}
+
+.quick-actions-side-toggle .icon {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .quick-actions-side-toggle {
+    display: none !important;
+  }
+}
+
 /* روی دسکتاپ، هدر شناور یک قرص وسط‌چین با عرض متغیر است (بسته به زبان، طول نام هر خریدار،
    تعداد آیتم‌های منو...) و آیکن‌های تماس/چت هم مستقل از آن در گوشه‌ی صفحه ثابت شده‌اند — یعنی
    همیشه یک عرض ویوپورت (یا حتی یک breakpoint دیگر مثل شماره‌ی تلفن که از ۱۳۲۰px به بعد
@@ -29,14 +64,32 @@
    بازه‌ها، برای هر عرض دسکتاپ/تبلتی از کنار هدر بیرون آورده می‌شوند تا اصلاً هیچ‌وقت با آن
    رقابتی روی یک باند افقی نداشته باشند. */
 @media (min-width: 769px) {
-  /* دکمه‌ی چت بالا، دکمه‌ی تماس زیرش — هم‌راستا با لبه‌ی بیرونی (راست در LTR، چپ در RTL). */
+  /* دکمه‌ی چت بالا، دکمه‌ی تماس زیرش */
   .header-quick-actions {
     flex-direction: column-reverse;
+  }
+
+  /* چیدمان سمت راست (پیش‌فرض یا کلاس quick-actions-right) */
+  html.quick-actions-right .header-quick-actions,
+  html:not(.quick-actions-left) .header-quick-actions {
+    right: 20px;
+    left: auto;
+    inset-inline-end: auto;
+    inset-inline-start: auto;
     align-items: flex-end;
   }
 
+  /* چیدمان سمت چپ (کلاس quick-actions-left) */
+  html.quick-actions-left .header-quick-actions {
+    left: 20px;
+    right: auto;
+    inset-inline-end: auto;
+    inset-inline-start: auto;
+    align-items: flex-start;
+  }
+
   /* حالت پیش‌فرض «شناور» (position:fixed): با اسکرول هم جابه‌جا نمی‌شود، پس تداخل با هدر
-     همیشگی است — همیشه به گوشه‌ی پایین-راست صفحه منتقل می‌شود، دور از هدر. */
+     همیشگی است — همیشه به گوشه‌ی پایین صفحه منتقل می‌شود، دور از هدر. */
   html:not(.quick-actions-fixed) .header-quick-actions {
     top: auto;
     bottom: 20px;

@@ -1,3 +1,4 @@
+import { renderQuickActions, initQuickActions } from './components/QuickActions.ts';
 import '@fontsource/vazirmatn/400.css';
 import '@fontsource/vazirmatn/500.css';
 import '@fontsource/vazirmatn/600.css';
@@ -10,9 +11,6 @@ import { renderHero } from './sections/Hero.ts';
 import { renderContentBlock, initContentBlocks } from './sections/ContentBlock.ts';
 import { initRequestWizard } from './sections/RequestWizard.ts';
 import { renderBottomNav, initBottomNav } from './components/BottomNav.ts';
-import { renderFloatingCallButton } from './components/FloatingCallButton.ts';
-import { renderFloatingWhatsAppButton } from './components/FloatingWhatsAppButton.ts';
-import { renderChatWidget, initChatWidget } from './components/ChatWidget.ts';
 import { renderDemoBadges } from './components/DemoBadges.ts';
 import { renderStoriesStrip, initStoriesStrip } from './components/StoriesStrip.ts';
 import { initLangToggle } from './components/LangToggle.ts';
@@ -74,11 +72,7 @@ function renderApp(settings: Awaited<ReturnType<typeof loadSettings>>, testimoni
     </main>
     ${renderFooter(settings)}
     ${renderBottomNav()}
-    <div class="header-quick-actions">
-      ${renderFloatingCallButton(settings)}
-      ${renderFloatingWhatsAppButton(settings)}
-      ${renderChatWidget()}
-    </div>
+    ${renderQuickActions(settings)}
     ${renderDemoBadges()}
   `;
 }
@@ -108,7 +102,7 @@ async function init(): Promise<void> {
   initContentBlocks();
   initBottomNav();
   initLangToggle();
-  initChatWidget();
+  initQuickActions(settings);
   initStoriesStrip(settings.homepage_layout?.storiesEnabled === false ? [] : stories);
 
   scrollToHashIfPresent();

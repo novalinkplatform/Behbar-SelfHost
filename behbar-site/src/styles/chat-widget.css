@@ -321,12 +321,27 @@ html[dir='ltr'] .chat-widget-send .icon {
   }
 }
 
-/* روی دسکتاپ، دکمه‌ی چت (بخشی از header-quick-actions) پایین-راست صفحه است، نه بالای هدر؛
-   پنل باید از همان دکمه به‌سمت بالا باز شود، نه اینکه جدا از آن بالای صفحه ظاهر شود. */
+/* روی دسکتاپ، دکمه‌ی چت (بخشی از header-quick-actions) در گوشه‌ی پایین صفحه است؛
+   پنل باید متناسب با سمت فعال (چپ یا راست) از همان دکمه به‌سمت بالا باز شود. */
 @media (min-width: 769px) {
   .chat-widget-panel {
     top: auto;
     bottom: 86px;
+  }
+
+  html.quick-actions-right .chat-widget-panel,
+  html:not(.quick-actions-left) .chat-widget-panel {
+    right: 20px;
+    left: auto;
+    inset-inline-end: auto;
+    inset-inline-start: auto;
+  }
+
+  html.quick-actions-left .chat-widget-panel {
+    left: 20px;
+    right: auto;
+    inset-inline-end: auto;
+    inset-inline-start: auto;
   }
 }
 
