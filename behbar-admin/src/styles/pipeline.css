@@ -405,3 +405,45 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .pipeline-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .pipeline-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pipeline-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+
+  .pipeline-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pipeline-tab {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .pipeline-card {
+    padding: 12px;
+    border-radius: 12px;
+    gap: 8px;
+  }
+
+  .pipeline-card-grid {
+    grid-template-columns: 1fr;
+  }
+}

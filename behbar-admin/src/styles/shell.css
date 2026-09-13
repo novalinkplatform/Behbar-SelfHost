@@ -128,15 +128,6 @@
   font-weight: 700;
 }
 
-@media (max-width: 900px) {
-  .admin-topbar-tab span:not(.icon) {
-    display: none;
-  }
-  .admin-topbar-tab {
-    padding: 6px 8px;
-  }
-}
-
 .admin-logo-mark {
   display: block;
   width: 28px;
@@ -359,5 +350,162 @@
 
   .home-tile {
     padding: var(--space-5) var(--space-2);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-shell {
+    padding: 8px;
+    gap: 8px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .admin-topbar {
+    position: sticky;
+    top: 6px;
+    padding: 6px 10px;
+    min-height: 50px;
+    border-radius: 14px;
+    gap: 6px;
+    margin-bottom: 2px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-topbar-start {
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .admin-logo {
+    gap: 4px;
+    padding: 2px 4px;
+  }
+
+  .admin-logo-mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .admin-logo-title {
+    font-size: 0.95rem;
+  }
+
+  .admin-topbar-nav {
+    gap: 3px;
+    padding: 2px;
+    margin-right: 0;
+  }
+
+  .admin-topbar-tab {
+    padding: 5px 8px;
+    font-size: 0.78rem;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  .admin-topbar-tab .icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .admin-topbar-end {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .admin-license-badge {
+    display: none;
+  }
+
+  .admin-topbar-user {
+    display: none;
+  }
+
+  .admin-logout {
+    padding: 6px 8px;
+    gap: 0;
+    border-radius: 8px;
+  }
+
+  .admin-logout span {
+    display: none;
+  }
+
+  .admin-back-btn {
+    padding: 5px 8px;
+    font-size: 0.76rem;
+    gap: 4px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .admin-back-btn:not([hidden]) ~ .admin-logo .admin-logo-title {
+    display: none;
+  }
+
+  .admin-main {
+    padding: 12px 10px;
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .view-header {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .view-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .home-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .home-tile {
+    padding: 14px 8px;
+    border-radius: 14px;
+    gap: 8px;
+  }
+
+  .home-tile-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .home-tile-icon .icon,
+  .home-tile-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .home-tile-label {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-logo-title {
+    font-size: 0.88rem;
+  }
+
+  .admin-topbar-tab {
+    padding: 5px 6px;
+    font-size: 0.74rem;
+    gap: 3px;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-logo-title {
+    display: none;
   }
 }

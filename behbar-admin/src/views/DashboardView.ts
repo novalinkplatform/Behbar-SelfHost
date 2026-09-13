@@ -243,6 +243,15 @@ export function initDashboardView(onNavigate: (view: string) => void): void {
               </div>
               <span class="dash-quick-arrow">${icons.arrowLeft}</span>
             </button>
+
+            <button type="button" class="dash-quick-card" data-dash-nav="home">
+              <div class="dash-quick-icon icon-modules">${icons.grid}</div>
+              <div class="dash-quick-body">
+                <strong>تمام بخش‌ها و ماژول‌ها</strong>
+                <span>تنظیمات، پرسنل، محتوا، پلاگین‌ها، سئو و گزارش‌ها</span>
+              </div>
+              <span class="dash-quick-arrow">${icons.arrowLeft}</span>
+            </button>
           </div>
         </div>
 

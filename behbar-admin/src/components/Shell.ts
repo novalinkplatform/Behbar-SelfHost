@@ -6,45 +6,20 @@ import { renderLicenseLockBanner } from './LicenseLockBanner.ts';
 import { renderDemoAccountBanner } from './DemoAccountBanner.ts';
 
 export function renderShell(staff: StaffInfo): string {
-  const tabs: string[] = [];
-  if (hasPermission(staff, 'dashboard')) {
-    tabs.push(`
+  const tabs: string[] = [
+    `
       <button type="button" class="admin-topbar-tab" data-admin-tab="dashboard">
         <span class="icon">${icons.chart}</span>
         <span>داشبورد</span>
       </button>
-    `);
-  }
-  if (hasPermission(staff, 'pipeline')) {
-    tabs.push(`
+    `,
+    `
       <button type="button" class="admin-topbar-tab" data-admin-tab="pipeline">
         <span class="icon">${icons.columns}</span>
         <span>درخواست‌ها</span>
       </button>
-    `);
-  }
-  if (hasPermission(staff, 'map')) {
-    tabs.push(`
-      <button type="button" class="admin-topbar-tab" data-admin-tab="map">
-        <span class="icon">${icons.map}</span>
-        <span>نقشه زنده</span>
-      </button>
-    `);
-  }
-  if (hasPermission(staff, 'staff')) {
-    tabs.push(`
-      <button type="button" class="admin-topbar-tab" data-admin-tab="fleet">
-        <span class="icon">${icons.truck}</span>
-        <span>ناوگان</span>
-      </button>
-    `);
-  }
-  tabs.push(`
-    <button type="button" class="admin-topbar-tab" data-admin-tab="home">
-      <span class="icon">${icons.grid}</span>
-      <span>سایر بخش‌ها</span>
-    </button>
-  `);
+    `,
+  ];
 
   return `
     <div class="admin-shell">
