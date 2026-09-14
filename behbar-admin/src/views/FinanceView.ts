@@ -3,6 +3,7 @@ import { fetchRequests, fetchStats, updateRequestStatus } from '../utils/api.ts'
 import type { OrderRecord } from '../utils/api.ts';
 import type { StaffInfo } from '../utils/auth.ts';
 import { showToast } from '../utils/toast.ts';
+import { resolveOrderInvoice } from '../utils/invoice.ts';
 
 interface CustomFinanceDoc {
   id: string;
@@ -541,6 +542,7 @@ export function initFinanceView(): void {
 
     const dateStr = doc.createdAt ? doc.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10);
     const badgeInfo = SETTLEMENT_STATUS_MAP[doc.settlementStatus] || { label: doc.settlementStatus, badgeClass: 'finance-badge-pending' };
+    const invoice = resolveOrderInvoice({ ...doc, estimateAvg: doc.amount || doc.estimateAvg || 1000000 });
 
     modalContainer.innerHTML = `
       <div class="finance-modal-backdrop" id="finance-modal-backdrop">
@@ -583,28 +585,42 @@ export function initFinanceView(): void {
                 </div>
               </div>
 
+              <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #ecfdf5; border: 1px solid #d1fae5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.84rem;">
+                <div><strong>مسیر:</strong> ${doc.originCity || '-'} به ${doc.destinationCity || '-'}</div>
+                <div><strong>خدمت:</strong> ${doc.serviceLabel || 'حمل‌ونقل بار'}</div>
+              </div>
+
               <table class="behbar-invoice-table">
                 <thead>
                   <tr>
-                    <th>ردیف</th>
-                    <th>شرح خدمات حمل بار</th>
-                    <th>مبدأ و مقصد</th>
-                    <th>مبلغ کل (تومان)</th>
+                    <th style="width: 40px; text-align: center;">ردیف</th>
+                    <th>شرح اقلام خدمات و هزینه‌ها</th>
+                    <th style="width: 140px; text-align: left;">مبلغ (تومان)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td style="text-align: center;">۱</td>
-                    <td>${doc.serviceLabel}</td>
-                    <td>${doc.originCity} به ${doc.destinationCity}</td>
-                    <td style="font-weight: 700; color: #059669;">${formatPriceToman(doc.amount)}</td>
-                  </tr>
+                  ${invoice.items
+                    .map(
+                      (item, idx) => `
+                    <tr>
+                      <td style="text-align: center;">${toPersianDigits(idx + 1)}</td>
+                      <td>
+                        <strong style="display: block; color: #1f2937; font-size: 0.92rem;">${item.title}</strong>
+                        <span style="display: block; color: #6b7280; font-size: 0.78rem; margin-top: 2px;">${item.description}</span>
+                      </td>
+                      <td style="text-align: left; font-weight: 700; color: ${item.amount === 0 ? '#9ca3af' : '#059669'}; white-space: nowrap;">
+                        ${item.amount === 0 ? 'رایگان / بدون سفارش' : formatPriceToman(item.amount)}
+                      </td>
+                    </tr>
+                  `,
+                    )
+                    .join('')}
                 </tbody>
               </table>
 
               <div class="behbar-invoice-total">
                 <span>مبلغ قابل تسویه نهایی:</span>
-                <span style="font-size: 1.25rem;">${formatPriceToman(doc.amount)} تومان</span>
+                <span style="font-size: 1.25rem; font-weight: 800; color: #059669;">${formatPriceToman(invoice.total)} تومان</span>
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12px; font-size: 0.8rem; color: #6b7280;">

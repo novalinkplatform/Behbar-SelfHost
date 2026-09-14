@@ -14,6 +14,7 @@ import type { OrderRecord, StaffRecord, RequestReport, RequestEvent } from '../u
 import { STATUS_PIPELINE, STATUS_COLORS } from '../data/status.ts';
 import { formatToman, toPersianDigits } from '../utils/format.ts';
 import { formatMessageTimestamp } from '../utils/jalali.ts';
+import { openAdminInvoiceModal } from '../utils/invoice.ts';
 
 const AUTO_REFRESH_MS = 30000;
 const DEFAULT_STATUS = 'pending';
@@ -101,6 +102,10 @@ function renderCard(
       <div class="pipeline-card-top">
         <span class="pipeline-tracking">#${toPersianDigits(order.trackingCode)}</span>
         <span class="pipeline-card-top-end">
+          <button type="button" class="pipeline-btn-invoice" data-invoice-request-id="${order.id}" title="مشاهده و چاپ فاکتور تفکیکی رسمی">
+            <span class="icon">${icons.fileText}</span>
+            <span>فاکتور</span>
+          </button>
           <span class="pipeline-estimate">${formatToman(order.estimateAvg)}</span>
           <button type="button" class="pipeline-delete-btn" data-delete-request-id="${order.id}" title="حذف کامل درخواست" aria-label="حذف کامل درخواست">${icons.close}</button>
         </span>
@@ -282,6 +287,14 @@ export function initPipelineView(): void {
           errorEl!.textContent = err instanceof Error ? err.message : 'اختصاص ناموفق بود.';
           select.disabled = false;
         }
+      });
+    });
+
+    list!.querySelectorAll<HTMLButtonElement>('[data-invoice-request-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.invoiceRequestId);
+        const order = latestOrders.find((o) => o.id === id);
+        if (order) openAdminInvoiceModal(order);
       });
     });
 

@@ -14,6 +14,8 @@ import type { OrderRecord } from './utils/api.ts';
 import { statusLabel } from './data/status.ts';
 import { formatToman } from './utils/format.ts';
 import { toPersianDigits } from './utils/jalali.ts';
+import { resolveOrderInvoice } from './data/pricing.ts';
+import { openCustomerInvoiceModal } from './components/InvoiceModal.ts';
 import { initCalendarPicker } from './components/PersianCalendar.ts';
 import { initTimePicker, formatTime } from './components/TimePicker.ts';
 import { icons } from './components/icons.ts';
@@ -77,17 +79,21 @@ function renderOrderCard(order: OrderRecord): string {
       </div>
       <div class="order-meta">${order.serviceLabel} · <span id="order-schedule-${order.id}">${order.scheduledDate} — ${pick('ساعت', 'at')} ${toPersianDigits(order.scheduledTime)}</span></div>
       <div class="order-estimate">${formatToman(order.estimateAvg)}</div>
-      ${
-        canEdit
-          ? `
-        <div class="order-actions">
+      <div class="order-actions" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+        <button type="button" class="btn btn-secondary btn-sm" data-order-invoice="${order.id}">
+          <span class="icon" style="width: 14px; height: 14px;">${icons.fileText}</span>
+          <span>${pick('مشاهده فاکتور', 'View invoice')}</span>
+        </button>
+        ${
+          canEdit
+            ? `
           <button type="button" class="btn btn-secondary btn-sm" data-edit-toggle="${order.id}">${pick('ویرایش زمان', 'Edit time')}</button>
           <button type="button" class="btn btn-ghost btn-sm" data-cancel-order="${order.id}">${pick('لغو درخواست', 'Cancel request')}</button>
-        </div>
-        ${renderOrderEditForm(order.id)}
-      `
-          : ''
-      }
+        `
+            : ''
+        }
+      </div>
+      ${canEdit ? renderOrderEditForm(order.id) : ''}
     </div>
   `;
 }
@@ -208,6 +214,30 @@ async function init(): Promise<void> {
       });
     });
 
+    document.querySelectorAll<HTMLButtonElement>('[data-order-invoice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.orderInvoice);
+        const order = currentOrdersList.find((o) => o.id === id);
+        if (!order) return;
+        const invoice = resolveOrderInvoice(order);
+        openCustomerInvoiceModal({
+          trackingCode: order.trackingCode,
+          customerName: order.customerName,
+          phone: order.phone,
+          serviceLabel: order.serviceLabel,
+          originProvince: order.originProvince,
+          originCity: order.originCity,
+          destinationProvince: order.destinationProvince,
+          destinationCity: order.destinationCity,
+          scheduledDate: order.scheduledDate,
+          scheduledTime: order.scheduledTime,
+          createdAt: order.createdAt,
+          statusLabel: statusLabel(order.status),
+          invoice,
+        });
+      });
+    });
+
     document.querySelectorAll<HTMLButtonElement>('[data-cancel-order]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.cancelOrder;
@@ -224,7 +254,10 @@ async function init(): Promise<void> {
     });
   }
 
+  let currentOrdersList: OrderRecord[] = [];
+
   function renderResults(orders: OrderRecord[]): void {
+    currentOrdersList = orders;
     const active = orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
     const history = orders.filter((o) => HISTORY_STATUSES.includes(o.status));
 

@@ -141,6 +141,32 @@
   gap: var(--space-2);
 }
 
+.pipeline-btn-invoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pipeline-btn-invoice:hover {
+  background-color: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+.pipeline-btn-invoice .icon {
+  width: 13px;
+  height: 13px;
+}
+
 .pipeline-delete-btn {
   display: flex;
   align-items: center;

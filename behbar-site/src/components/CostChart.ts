@@ -1,9 +1,27 @@
 import { formatToman } from '../utils/format.ts';
 import { toPersianDigits } from '../utils/jalali.ts';
 import { pick } from '../i18n/lang.ts';
-import type { CostEstimate } from '../data/pricing.ts';
+import type { CostEstimate, DetailedInvoice } from '../data/pricing.ts';
 
-export function renderCostChart(estimate: CostEstimate): string {
+export function renderCostChart(estimate: CostEstimate, invoice?: DetailedInvoice): string {
+  const breakdownRows = invoice?.items
+    ? invoice.items
+        .map(
+          (item) => `
+        <tr class="invoice-breakdown-row ${item.amount === 0 ? 'invoice-breakdown-zero' : ''}">
+          <td class="invoice-item-desc">
+            <strong>${item.title}</strong>
+            <small>${item.description}</small>
+          </td>
+          <td class="invoice-item-amount" style="text-align: left;">
+            ${item.amount === 0 ? pick('رایگان / بدون سفارش', 'Free / Not requested') : formatToman(item.amount)}
+          </td>
+        </tr>
+      `,
+        )
+        .join('')
+    : '';
+
   return `
     <div class="cost-chart">
       <svg viewBox="0 0 400 150" role="img" aria-label="${pick('نمودار برآورد هزینه جابه‌جایی', 'Moving cost estimate chart')}">
@@ -27,8 +45,41 @@ export function renderCostChart(estimate: CostEstimate): string {
             )}</p>`
           : ''
       }
+
+      ${
+        invoice && breakdownRows
+          ? `
+        <div class="wizard-invoice-breakdown">
+          <div class="wizard-invoice-header">
+            <span class="wizard-invoice-title">${pick('پیش‌فاکتور تفکیکی خدمات شما', 'Itemized Cost Breakdown')}</span>
+            <span class="wizard-invoice-badge">${pick('محاسبه دقیق سیستمی', 'Accurate System Pricing')}</span>
+          </div>
+          <table class="wizard-invoice-table">
+            <thead>
+              <tr>
+                <th>${pick('شرح خدمت و آیتم هزینه', 'Service Item')}</th>
+                <th style="text-align: left;">${pick('مبلغ', 'Amount')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${breakdownRows}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>${pick('جمع کل فاکتور', 'Total Invoice')}</strong></td>
+                <td style="text-align: left; font-weight: 800; color: var(--primary); font-size: 1.05rem;">
+                  ${formatToman(invoice.total)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `
+          : ''
+      }
+
       <p class="cost-chart-disclaimer">
-        ${pick('این فقط یک برآورد اولیه است؛ قیمت نهایی را با کارشناسان ما هماهنگ کنید.', 'This is only a preliminary estimate; confirm the final price with our team.')}
+        ${pick('این فاکتور بر اساس مشخصات انتخابی شما محاسبه شده و در سامانه ثبت می‌شود.', 'This invoice is calculated based on your selections and recorded in the system.')}
       </p>
     </div>
   `;

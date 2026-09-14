@@ -6,7 +6,8 @@ import { renderLocationMap, initLocationMap } from '../components/LocationMap.ts
 import { renderCalendarPicker, initCalendarPicker } from '../components/PersianCalendar.ts';
 import { renderTimePicker, initTimePicker, formatTime } from '../components/TimePicker.ts';
 import { renderCostChart } from '../components/CostChart.ts';
-import { estimateCost } from '../data/pricing.ts';
+import { estimateCost, calculateDetailedInvoice } from '../data/pricing.ts';
+import { openCustomerInvoiceModal } from '../components/InvoiceModal.ts';
 import { provinces, displayCityName, displayProvinceName, matchProvinceAndCity } from '../data/provinces.ts';
 import { PROPERTY_TYPES } from '../data/propertyTypes.ts';
 import { toPersianDigits } from '../utils/jalali.ts';
@@ -842,7 +843,7 @@ export function initRequestWizard(
       const originPos = originMap?.getPosition();
       const destinationPos = destinationMap?.getPosition();
       const pricing = resolveVehiclePricing(state.vehicleId);
-      const estimate = estimateCost({
+      const estimateInput = {
         ...pricing,
         originFloor: state.originFloor ?? 0,
         originHasElevator: state.originElevator ?? true,
@@ -856,8 +857,10 @@ export function initRequestWizard(
         destinationLng: destinationPos?.lng ?? null,
         wantsPacking: state.wantsPacking ?? false,
         laborChoice: state.laborChoice ?? 'none',
-      });
-      costChartContainer!.innerHTML = renderCostChart(estimate);
+      };
+      const estimate = estimateCost(estimateInput);
+      const detailedInvoice = calculateDetailedInvoice(estimateInput);
+      costChartContainer!.innerHTML = renderCostChart(estimate, detailedInvoice);
     }
   }
 
@@ -993,82 +996,108 @@ export function initRequestWizard(
     const originPosition = originMap?.getPosition();
     const destinationPosition = destinationMap?.getPosition();
 
-    const estimate = estimateCost({
-      ...resolveVehiclePricing(state.vehicleId),
-      originFloor: state.originFloor ?? 0,
-      originHasElevator: state.originElevator ?? true,
-      originPropertyType: state.originPropertyType,
-      originLat: originPosition?.lat ?? null,
-      originLng: originPosition?.lng ?? null,
-      destinationFloor: state.destinationFloor ?? 0,
-      destinationHasElevator: state.destinationElevator ?? true,
-      destinationPropertyType: state.destinationPropertyType,
-      destinationLat: destinationPosition?.lat ?? null,
-      destinationLng: destinationPosition?.lng ?? null,
-      wantsPacking: state.wantsPacking ?? false,
-      laborChoice: state.laborChoice,
-    });
-
-    const name = nameInput!.value.trim();
-    const phone = phoneInput!.value.trim();
-    submitError!.hidden = true;
-    nextBtn!.disabled = true;
-    nextBtn!.textContent = pick('در حال ثبت...', 'Submitting...');
-
-    try {
-      const { trackingCode } = await submitRequestApi({
-        customerName: name,
-        serviceId: state.serviceId,
-        serviceLabel: serviceLabel(),
-        originProvince: originValue.province,
-        originCity: originValue.city,
-        originCountry: (document.getElementById('wizard-origin-country') as HTMLSelectElement | null)?.value,
+      const estimateInput = {
+        ...resolveVehiclePricing(state.vehicleId),
+        originFloor: state.originFloor ?? 0,
+        originHasElevator: state.originElevator ?? true,
         originPropertyType: state.originPropertyType,
         originLat: originPosition?.lat ?? null,
         originLng: originPosition?.lng ?? null,
-        originNotes: (document.getElementById('wizard-origin-notes') as HTMLTextAreaElement | null)?.value.trim() || undefined,
-        destinationProvince: destinationValue.province,
-        destinationCity: destinationValue.city,
-        destinationCountry: (document.getElementById('wizard-destination-country') as HTMLSelectElement | null)?.value,
+        destinationFloor: state.destinationFloor ?? 0,
+        destinationHasElevator: state.destinationElevator ?? true,
         destinationPropertyType: state.destinationPropertyType,
         destinationLat: destinationPosition?.lat ?? null,
         destinationLng: destinationPosition?.lng ?? null,
-        destinationNotes: (document.getElementById('wizard-destination-notes') as HTMLTextAreaElement | null)?.value.trim() || undefined,
-        originFloor: state.originFloor ?? 0,
-        originElevator: state.originElevator ?? true,
-        destinationFloor: state.destinationFloor ?? 0,
-        destinationElevator: state.destinationElevator ?? true,
         wantsPacking: state.wantsPacking ?? false,
         laborChoice: state.laborChoice,
-        scheduledDate: date,
-        scheduledTime: formatTime(time),
-        estimateMin: estimate.min,
-        estimateAvg: estimate.avg,
-        estimateMax: estimate.max,
-        phone,
-      });
+      };
+      const estimate = estimateCost(estimateInput);
+      const detailedInvoice = calculateDetailedInvoice(estimateInput);
 
-      saveLastPhone(phone);
-      saveLastName(name);
-      const originNotes = (document.getElementById('wizard-origin-notes') as HTMLTextAreaElement | null)?.value.trim();
-      const destinationNotes = (document.getElementById('wizard-destination-notes') as HTMLTextAreaElement | null)?.value.trim();
-      trackingCodeEl!.textContent = toPersianDigits(trackingCode);
-      trackEvent('order_submitted', { trackingCode, serviceId: state.serviceId, vehicleId: state.vehicleId });
-      finalSummaryEl!.innerHTML = `
-        <div class="request-summary-row"><dt>${pick('نام', 'Name')}</dt><dd>${name}</dd></div>
-        <div class="request-summary-row"><dt>${pick('نوع خدمت', 'Service type')}</dt><dd>${categoryLabel()}</dd></div>
-        <div class="request-summary-row"><dt>${pick('وسیله نقلیه', 'Vehicle')}</dt><dd>${vehicleLabel()}</dd></div>
-        <div class="request-summary-row"><dt>${pick('مسیر', 'Route')}</dt><dd>${displayCityName(originValue.province, originValue.city)}${pick('،', ',')} ${displayProvinceName(originValue.province)} ← ${displayCityName(destinationValue.province, destinationValue.city)}${pick('،', ',')} ${displayProvinceName(destinationValue.province)}</dd></div>
-        <div class="request-summary-row"><dt>${pick('نوع مکان', 'Property type')}</dt><dd>${propertyTypeLabel(state.originPropertyType)} ← ${propertyTypeLabel(state.destinationPropertyType)}</dd></div>
-        <div class="request-summary-row"><dt>${pick('زمان', 'Time')}</dt><dd>${date} — ${pick('ساعت', 'at')} ${formatTime(time)}</dd></div>
-        <div class="request-summary-row"><dt>${pick('موبایل', 'Mobile')}</dt><dd>${toPersianDigits(phone)}</dd></div>
-        ${originNotes ? `<div class="request-summary-row"><dt>${pick('توضیحات مبدأ', 'Origin notes')}</dt><dd>${originNotes}</dd></div>` : ''}
-        ${destinationNotes ? `<div class="request-summary-row"><dt>${pick('توضیحات مقصد', 'Destination notes')}</dt><dd>${destinationNotes}</dd></div>` : ''}
-      `;
+      const name = nameInput!.value.trim();
+      const phone = phoneInput!.value.trim();
+      submitError!.hidden = true;
+      nextBtn!.disabled = true;
+      nextBtn!.textContent = pick('در حال ثبت...', 'Submitting...');
 
-      card!.querySelectorAll<HTMLElement>('.request-panel[data-panel]').forEach((el) => {
-        el.hidden = el.dataset.panel !== 'success';
-      });
+      try {
+        const { trackingCode } = await submitRequestApi({
+          customerName: name,
+          serviceId: state.serviceId,
+          serviceLabel: serviceLabel(),
+          originProvince: originValue.province,
+          originCity: originValue.city,
+          originCountry: (document.getElementById('wizard-origin-country') as HTMLSelectElement | null)?.value,
+          originPropertyType: state.originPropertyType,
+          originLat: originPosition?.lat ?? null,
+          originLng: originPosition?.lng ?? null,
+          originNotes: (document.getElementById('wizard-origin-notes') as HTMLTextAreaElement | null)?.value.trim() || undefined,
+          destinationProvince: destinationValue.province,
+          destinationCity: destinationValue.city,
+          destinationCountry: (document.getElementById('wizard-destination-country') as HTMLSelectElement | null)?.value,
+          destinationPropertyType: state.destinationPropertyType,
+          destinationLat: destinationPosition?.lat ?? null,
+          destinationLng: destinationPosition?.lng ?? null,
+          destinationNotes: (document.getElementById('wizard-destination-notes') as HTMLTextAreaElement | null)?.value.trim() || undefined,
+          originFloor: state.originFloor ?? 0,
+          originElevator: state.originElevator ?? true,
+          destinationFloor: state.destinationFloor ?? 0,
+          destinationElevator: state.destinationElevator ?? true,
+          wantsPacking: state.wantsPacking ?? false,
+          laborChoice: state.laborChoice,
+          scheduledDate: date,
+          scheduledTime: formatTime(time),
+          estimateMin: estimate.min,
+          estimateAvg: estimate.avg,
+          estimateMax: estimate.max,
+          phone,
+        });
+
+        saveLastPhone(phone);
+        saveLastName(name);
+        const originNotes = (document.getElementById('wizard-origin-notes') as HTMLTextAreaElement | null)?.value.trim();
+        const destinationNotes = (document.getElementById('wizard-destination-notes') as HTMLTextAreaElement | null)?.value.trim();
+        trackingCodeEl!.textContent = toPersianDigits(trackingCode);
+        trackEvent('order_submitted', { trackingCode, serviceId: state.serviceId, vehicleId: state.vehicleId });
+        finalSummaryEl!.innerHTML = `
+          <div class="request-summary-row"><dt>${pick('نام', 'Name')}</dt><dd>${name}</dd></div>
+          <div class="request-summary-row"><dt>${pick('نوع خدمت', 'Service type')}</dt><dd>${categoryLabel()}</dd></div>
+          <div class="request-summary-row"><dt>${pick('وسیله نقلیه', 'Vehicle')}</dt><dd>${vehicleLabel()}</dd></div>
+          <div class="request-summary-row"><dt>${pick('مسیر', 'Route')}</dt><dd>${displayCityName(originValue.province, originValue.city)}${pick('،', ',')} ${displayProvinceName(originValue.province)} ← ${displayCityName(destinationValue.province, destinationValue.city)}${pick('،', ',')} ${displayProvinceName(destinationValue.province)}</dd></div>
+          <div class="request-summary-row"><dt>${pick('نوع مکان', 'Property type')}</dt><dd>${propertyTypeLabel(state.originPropertyType)} ← ${propertyTypeLabel(state.destinationPropertyType)}</dd></div>
+          <div class="request-summary-row"><dt>${pick('زمان', 'Time')}</dt><dd>${date} — ${pick('ساعت', 'at')} ${formatTime(time)}</dd></div>
+          <div class="request-summary-row"><dt>${pick('موبایل', 'Mobile')}</dt><dd>${toPersianDigits(phone)}</dd></div>
+          ${originNotes ? `<div class="request-summary-row"><dt>${pick('توضیحات مبدأ', 'Origin notes')}</dt><dd>${originNotes}</dd></div>` : ''}
+          ${destinationNotes ? `<div class="request-summary-row"><dt>${pick('توضیحات مقصد', 'Destination notes')}</dt><dd>${destinationNotes}</dd></div>` : ''}
+          <div class="wizard-success-invoice-cta" style="margin-top: 18px; text-align: center; width: 100%;">
+            <button type="button" class="btn btn-primary" id="wizard-view-invoice-btn" style="width: 100%; max-width: 320px; margin: 0 auto; gap: 8px;">
+              <span class="icon">${icons.fileText}</span>
+              <span>${pick('مشاهده و دریافت فاکتور رسمی', 'View & Print Official Invoice')}</span>
+            </button>
+          </div>
+        `;
+
+        const viewInvoiceBtn = document.getElementById('wizard-view-invoice-btn');
+        viewInvoiceBtn?.addEventListener('click', () => {
+          openCustomerInvoiceModal({
+            trackingCode,
+            customerName: name,
+            phone,
+            serviceLabel: serviceLabel(),
+            originProvince: originValue.province,
+            originCity: originValue.city,
+            destinationProvince: destinationValue.province,
+            destinationCity: destinationValue.city,
+            scheduledDate: date,
+            scheduledTime: formatTime(time),
+            statusLabel: pick('ثبت شده — در انتظار بررسی', 'Submitted — Pending'),
+            invoice: detailedInvoice,
+          });
+        });
+
+        card!.querySelectorAll<HTMLElement>('.request-panel[data-panel]').forEach((el) => {
+          el.hidden = el.dataset.panel !== 'success';
+        });
       document.querySelector('.wizard-progress')?.setAttribute('hidden', '');
       questionEl!.hidden = true;
       footer!.hidden = true;
