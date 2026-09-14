@@ -535,4 +535,16 @@ function init(): void {
     });
 }
 
+// Prevent page title (such as "پنل مدیریت بهبار") from ever appearing on PDF/print header
+let originalAdminDocTitle = '';
+window.addEventListener('beforeprint', () => {
+  originalAdminDocTitle = document.title;
+  document.title = ' ';
+});
+window.addEventListener('afterprint', () => {
+  if (originalAdminDocTitle) {
+    document.title = originalAdminDocTitle;
+  }
+});
+
 init();

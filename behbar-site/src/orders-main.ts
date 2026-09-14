@@ -13,7 +13,7 @@ import { fetchOrdersByPhone, rescheduleOrder, cancelOrder, EDITABLE_ORDER_STATUS
 import type { OrderRecord } from './utils/api.ts';
 import { statusLabel } from './data/status.ts';
 import { formatToman } from './utils/format.ts';
-import { toPersianDigits } from './utils/jalali.ts';
+import { toPersianDigits, formatIranianDate } from './utils/jalali.ts';
 import { resolveOrderInvoice } from './data/pricing.ts';
 import { openCustomerInvoiceModal } from './components/InvoiceModal.ts';
 import { initCalendarPicker } from './components/PersianCalendar.ts';
@@ -77,12 +77,12 @@ function renderOrderCard(order: OrderRecord): string {
         <span class="icon">${icons.flag}</span>
         <span>${displayCityName(order.destinationProvince, order.destinationCity)}</span>
       </div>
-      <div class="order-meta">${order.serviceLabel} · <span id="order-schedule-${order.id}">${order.scheduledDate} — ${pick('ساعت', 'at')} ${toPersianDigits(order.scheduledTime)}</span></div>
+      <div class="order-meta">${order.serviceLabel} · <span id="order-schedule-${order.id}">${formatIranianDate(order.scheduledDate)} — ${pick('ساعت', 'at')} ${toPersianDigits(order.scheduledTime)}</span></div>
       <div class="order-estimate">${formatToman(order.estimateAvg)}</div>
       <div class="order-actions" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
         <button type="button" class="btn btn-secondary btn-sm" data-order-invoice="${order.id}">
           <span class="icon" style="width: 14px; height: 14px;">${icons.fileText}</span>
-          <span>${pick('مشاهده فاکتور', 'View invoice')}</span>
+          <span>${pick('مشاهده و دریافت فاکتور', 'View & download invoice')}</span>
         </button>
         ${
           canEdit

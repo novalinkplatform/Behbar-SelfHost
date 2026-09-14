@@ -3,6 +3,8 @@ import { fetchRequests } from '../utils/api.ts';
 import type { OrderRecord } from '../utils/api.ts';
 import type { StaffInfo } from '../utils/auth.ts';
 import { showToast } from '../utils/toast.ts';
+import { formatIranianDate } from '../utils/jalali.ts';
+import { printAdminInvoiceSheet } from '../utils/invoice.ts';
 
 export interface WaybillRecord {
   id: string;
@@ -793,7 +795,7 @@ export function initWaybillsView(): void {
     document.getElementById('wb-print-modal-cancel')?.addEventListener('click', close);
 
     document.getElementById('wb-print-modal-do')?.addEventListener('click', () => {
-      window.print();
+      printAdminInvoiceSheet('official-sheet-content');
     });
   }
 
@@ -1012,8 +1014,8 @@ export function initWaybillsView(): void {
       const randomNum = Math.floor(100000 + Math.random() * 900000);
       const newWaybill: WaybillRecord = {
         id: `wb-${Date.now()}`,
-        waybillNumber: `IR-1403-${randomNum}`,
-        issueDate: '۱۴۰۳/۰۶/۲۴',
+        waybillNumber: `IR-1405-${randomNum}`,
+        issueDate: formatIranianDate(new Date()),
         status: 'active',
         sender: {
           name: senderName,

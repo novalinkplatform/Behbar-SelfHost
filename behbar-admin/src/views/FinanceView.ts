@@ -3,7 +3,8 @@ import { fetchRequests, fetchStats, updateRequestStatus } from '../utils/api.ts'
 import type { OrderRecord } from '../utils/api.ts';
 import type { StaffInfo } from '../utils/auth.ts';
 import { showToast } from '../utils/toast.ts';
-import { resolveOrderInvoice } from '../utils/invoice.ts';
+import { resolveOrderInvoice, printAdminInvoiceSheet, downloadAdminInvoiceHtml } from '../utils/invoice.ts';
+import { formatIranianDate } from '../utils/jalali.ts';
 
 interface CustomFinanceDoc {
   id: string;
@@ -463,12 +464,12 @@ export function initFinanceView(): void {
       .map((d) => {
         const badgeInfo = SETTLEMENT_STATUS_MAP[d.settlementStatus] || { label: d.settlementStatus, badgeClass: 'finance-badge-pending' };
         const routeLabel = d.originCity && d.destinationCity ? `${d.originCity} ➔ ${d.destinationCity}` : '—';
-        const dateStr = d.createdAt ? d.createdAt.slice(0, 10) : '—';
+        const dateStr = d.createdAt ? formatIranianDate(d.createdAt) : '—';
 
         return `
           <tr data-doc-id="${d.id}">
             <td style="font-weight: 700; font-family: monospace; direction: ltr; text-align: right;">${d.trackingCode}</td>
-            <td style="white-space: nowrap;">${toPersianDigits(dateStr)}</td>
+            <td style="white-space: nowrap;">${dateStr}</td>
             <td style="font-weight: 600;">${d.customerName}</td>
             <td style="direction: ltr; text-align: right;">${toPersianDigits(d.phone)}</td>
             <td>${d.serviceLabel}</td>
@@ -540,7 +541,8 @@ export function initFinanceView(): void {
     const modalContainer = document.getElementById('finance-modal-container');
     if (!modalContainer) return;
 
-    const dateStr = doc.createdAt ? doc.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const dateStr = formatIranianDate(doc.createdAt);
+    const scheduledDateStr = doc.scheduledDate ? formatIranianDate(doc.scheduledDate) : '';
     const badgeInfo = SETTLEMENT_STATUS_MAP[doc.settlementStatus] || { label: doc.settlementStatus, badgeClass: 'finance-badge-pending' };
     const invoice = resolveOrderInvoice({ ...doc, estimateAvg: doc.amount || doc.estimateAvg || 1000000 });
 
@@ -567,7 +569,7 @@ export function initFinanceView(): void {
                 </div>
                 <div class="behbar-invoice-meta">
                   <div><strong>شماره سند:</strong> <span style="font-family: monospace; direction: ltr;">${doc.trackingCode}</span></div>
-                  <div><strong>تاریخ صدور:</strong> ${toPersianDigits(dateStr)}</div>
+                  <div><strong>تاریخ صدور:</strong> ${dateStr}</div>
                   <div><strong>وضعیت تسویه:</strong> <span class="finance-badge ${badgeInfo.badgeClass}">${badgeInfo.label}</span></div>
                 </div>
               </div>
@@ -587,15 +589,16 @@ export function initFinanceView(): void {
 
               <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #ecfdf5; border: 1px solid #d1fae5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.84rem;">
                 <div><strong>مسیر:</strong> ${doc.originCity || '-'} به ${doc.destinationCity || '-'}</div>
+                ${scheduledDateStr ? `<div><strong>زمان‌بندی:</strong> ${scheduledDateStr} ${doc.scheduledTime ? '— ساعت ' + toPersianDigits(doc.scheduledTime) : ''}</div>` : ''}
                 <div><strong>خدمت:</strong> ${doc.serviceLabel || 'حمل‌ونقل بار'}</div>
               </div>
 
               <table class="behbar-invoice-table">
                 <thead>
                   <tr>
-                    <th style="width: 40px; text-align: center;">ردیف</th>
-                    <th>شرح اقلام خدمات و هزینه‌ها</th>
-                    <th style="width: 140px; text-align: left;">مبلغ (تومان)</th>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th>شرح خدمات و اقلام هزینه</th>
+                    <th style="width: 130px; text-align: left;">مبلغ (تومان)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -605,11 +608,11 @@ export function initFinanceView(): void {
                     <tr>
                       <td style="text-align: center;">${toPersianDigits(idx + 1)}</td>
                       <td>
-                        <strong style="display: block; color: #1f2937; font-size: 0.92rem;">${item.title}</strong>
-                        <span style="display: block; color: #6b7280; font-size: 0.78rem; margin-top: 2px;">${item.description}</span>
+                        <strong>${item.title}</strong>
+                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">${item.description}</div>
                       </td>
-                      <td style="text-align: left; font-weight: 700; color: ${item.amount === 0 ? '#9ca3af' : '#059669'}; white-space: nowrap;">
-                        ${item.amount === 0 ? 'رایگان / بدون سفارش' : formatPriceToman(item.amount)}
+                      <td style="text-align: left; font-weight: 700; color: ${item.amount === 0 ? '#9ca3af' : '#059669'};">
+                        ${item.amount === 0 ? 'رایگان' : formatPriceToman(item.amount)}
                       </td>
                     </tr>
                   `,
@@ -619,13 +622,13 @@ export function initFinanceView(): void {
               </table>
 
               <div class="behbar-invoice-total">
-                <span>مبلغ قابل تسویه نهایی:</span>
+                <span style="font-weight: 700;">جمع کل قابل پرداخت:</span>
                 <span style="font-size: 1.25rem; font-weight: 800; color: #059669;">${formatPriceToman(invoice.total)} تومان</span>
               </div>
 
-              <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12px; font-size: 0.8rem; color: #6b7280;">
-                <div>
-                  این سند به‌صورت دیجیتال توسط سیستم مالی و حسابداری بهبار صادر و اعتبار قانونی دارد.
+              <div class="behbar-invoice-footer-sign" style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.78rem; color: #6b7280; margin-top: 18px;">
+                <div style="max-width: 440px; line-height: 1.5;">
+                  این صورتحساب توسط سیستم هوشمند ترابری بهبار صادر شده و معتبر می‌باشد.
                 </div>
                 <div style="text-align: center; border-top: 1px dashed #d1d5db; padding-top: 6px; width: 140px;">
                   مهر و امضای امور مالی بهبار
@@ -635,9 +638,13 @@ export function initFinanceView(): void {
           </div>
 
           <div class="finance-modal-footer">
-            <button type="button" class="finance-btn-primary" id="btn-print-invoice-sheet">
+            <button type="button" class="finance-btn-primary" id="btn-print-invoice-sheet" title="چاپ یا ذخیره فاکتور به‌صورت PDF بدون عنوان اضافی">
               <span class="icon">${icons.printer}</span>
-              <span>چاپ فاکتور</span>
+              <span>چاپ و ذخیره PDF</span>
+            </button>
+            <button type="button" class="finance-btn-secondary" id="btn-download-finance-invoice" style="display: inline-flex; align-items: center; gap: 6px;" title="دریافت فایل سند آفلاین فاکتور">
+              <span class="icon" style="width: 16px; height: 16px;">${icons.download}</span>
+              <span>دریافت فایل فاکتور</span>
             </button>
             <button type="button" class="finance-btn-secondary" id="btn-close-invoice-modal">بستن</button>
           </div>
@@ -652,7 +659,11 @@ export function initFinanceView(): void {
     });
 
     document.getElementById('btn-print-invoice-sheet')?.addEventListener('click', () => {
-      window.print();
+      printAdminInvoiceSheet('behbar-printable-invoice');
+    });
+
+    document.getElementById('btn-download-finance-invoice')?.addEventListener('click', () => {
+      downloadAdminInvoiceHtml('behbar-printable-invoice', doc.trackingCode);
     });
 
     function closeModal(): void {
@@ -812,7 +823,7 @@ export function initFinanceView(): void {
 
     for (const d of docs) {
       const statusLabel = SETTLEMENT_STATUS_MAP[d.settlementStatus]?.label || d.settlementStatus;
-      const dateStr = d.createdAt ? d.createdAt.slice(0, 10) : '';
+      const dateStr = d.createdAt ? formatIranianDate(d.createdAt) : '';
 
       lines.push(
         [

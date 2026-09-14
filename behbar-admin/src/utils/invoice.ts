@@ -1,5 +1,6 @@
 import { icons } from '../components/icons.ts';
 import { formatToman, toPersianDigits } from './format.ts';
+import { formatIranianDate } from './jalali.ts';
 
 export interface InvoiceItem {
   id: string;
@@ -137,8 +138,213 @@ export interface AdminInvoiceModalOptions {
   onClose?: () => void;
 }
 
+/**
+ * Isolated print function ensuring NO browser-injected header (such as "پنل مدیریت بهبار")
+ * appears on top of the print or PDF output.
+ */
+export function printAdminInvoiceSheet(elementId: string): void {
+  const sheet = document.getElementById(elementId);
+  if (!sheet) {
+    window.print();
+    return;
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  iframe.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) {
+    const origTitle = document.title;
+    document.title = ' ';
+    window.print();
+    window.addEventListener('afterprint', () => { document.title = origTitle; }, { once: true });
+    setTimeout(() => { document.title = origTitle; }, 3000);
+    iframe.remove();
+    return;
+  }
+
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html lang="fa" dir="rtl">
+    <head>
+      <meta charset="utf-8" />
+      <title> </title>
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 10mm 12mm;
+        }
+        * {
+          box-sizing: border-box;
+          font-family: Tahoma, 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background: #ffffff !important;
+          color: #111827 !important;
+          direction: rtl;
+        }
+        .behbar-invoice-sheet {
+          width: 100%;
+          max-width: 760px;
+          margin: 0 auto;
+          background: white;
+          padding: 16px 20px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+        .behbar-invoice-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          border-bottom: 2px solid #059669;
+          padding-bottom: 14px;
+          margin-bottom: 18px;
+        }
+        .behbar-invoice-meta {
+          text-align: left;
+          font-size: 0.82rem;
+          line-height: 1.6;
+          color: #4b5563;
+        }
+        .behbar-invoice-parties {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          background: #f9fafb;
+          padding: 12px 14px;
+          border-radius: 8px;
+          margin-bottom: 14px;
+          font-size: 0.84rem;
+        }
+        .behbar-invoice-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 18px;
+          font-size: 0.85rem;
+        }
+        .behbar-invoice-table th {
+          background: #f3f4f6;
+          color: #374151;
+          font-weight: 700;
+          padding: 10px 12px;
+          border: 1px solid #e5e7eb;
+          text-align: right;
+        }
+        .behbar-invoice-table td {
+          padding: 10px 12px;
+          border: 1px solid #e5e7eb;
+          text-align: right;
+          vertical-align: middle;
+        }
+        .behbar-invoice-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 1.05rem;
+          margin-bottom: 20px;
+        }
+        .behbar-invoice-footer-sign {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          font-size: 0.78rem;
+          color: #6b7280;
+        }
+        @media print {
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .behbar-invoice-sheet {
+            border: none;
+            box-shadow: none;
+            padding: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${sheet.outerHTML}
+    </body>
+    </html>
+  `);
+  doc.close();
+
+  setTimeout(() => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch {
+      window.print();
+    } finally {
+      setTimeout(() => iframe.remove(), 2500);
+    }
+  }, 300);
+}
+
+export function downloadAdminInvoiceHtml(elementId: string, trackingCode: string): void {
+  const sheet = document.getElementById(elementId);
+  if (!sheet) return;
+
+  const htmlContent = `<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>فاکتور رسمی بهبار - #${trackingCode}</title>
+  <style>
+    body { font-family: Tahoma, 'Vazirmatn', sans-serif; background: #f8fafc; padding: 20px; color: #111827; margin: 0; }
+    .behbar-invoice-sheet { background: white; max-width: 760px; margin: 0 auto; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .behbar-invoice-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #059669; padding-bottom: 16px; margin-bottom: 20px; }
+    .behbar-invoice-meta { text-align: left; font-size: 0.82rem; line-height: 1.6; color: #4b5563; }
+    .behbar-invoice-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f9fafb; padding: 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; }
+    .behbar-invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.86rem; }
+    .behbar-invoice-table th { background: #f3f4f6; color: #374151; font-weight: 700; padding: 10px 12px; border: 1px solid #e5e7eb; text-align: right; }
+    .behbar-invoice-table td { padding: 10px 12px; border: 1px solid #e5e7eb; text-align: right; }
+    .behbar-invoice-total { display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 14px 18px; border-radius: 8px; font-size: 1.1rem; margin-bottom: 24px; }
+    .behbar-invoice-footer-sign { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.8rem; color: #6b7280; }
+    @media print {
+      body { background: white; padding: 0; }
+      .behbar-invoice-sheet { box-shadow: none; border: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  ${sheet.outerHTML}
+</body>
+</html>`;
+
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `behbar-invoice-${trackingCode}.html`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
 export function openAdminInvoiceModal(doc: any): void {
-  // Check or create modal container
   let container = document.getElementById('admin-invoice-modal-portal');
   if (!container) {
     container = document.createElement('div');
@@ -147,7 +353,9 @@ export function openAdminInvoiceModal(doc: any): void {
   }
 
   const invoice = resolveOrderInvoice(doc);
-  const dateStr = doc.createdAt ? doc.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10);
+  // Always format dates to Iranian (Jalali) calendar
+  const dateStr = formatIranianDate(doc.createdAt);
+  const scheduledDateStr = doc.scheduledDate ? formatIranianDate(doc.scheduledDate) : '';
   const trackingCode = doc.trackingCode || doc.tracking_code || `${doc.id}`;
 
   const rowsHtml = invoice.items
@@ -193,7 +401,7 @@ export function openAdminInvoiceModal(doc: any): void {
               </div>
               <div class="behbar-invoice-meta" style="text-align: left; font-size: 0.82rem; line-height: 1.6; color: #4b5563;">
                 <div><strong>شماره سند:</strong> <span style="font-family: monospace; direction: ltr; font-weight: 700;">#${toPersianDigits(trackingCode)}</span></div>
-                <div><strong>تاریخ صدور:</strong> ${toPersianDigits(dateStr)}</div>
+                <div><strong>تاریخ صدور:</strong> ${dateStr}</div>
                 <div><strong>وضعیت سند:</strong> <span style="display: inline-block; padding: 2px 8px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 6px; font-weight: 600; font-size: 0.75rem;">رسمی و ثبت‌شده</span></div>
               </div>
             </div>
@@ -217,7 +425,7 @@ export function openAdminInvoiceModal(doc: any): void {
               <div>
                 <span style="color: #059669; font-weight: 700;">مسیر بار:</span> ${doc.originCity || '-'} ← ${doc.destinationCity || '-'}
               </div>
-              ${doc.scheduledDate ? `<div><span style="color: #059669; font-weight: 700;">زمان‌بندی:</span> ${doc.scheduledDate} — ساعت ${toPersianDigits(doc.scheduledTime || '')}</div>` : ''}
+              ${scheduledDateStr ? `<div><span style="color: #059669; font-weight: 700;">زمان‌بندی:</span> ${scheduledDateStr} — ساعت ${toPersianDigits(doc.scheduledTime || '')}</div>` : ''}
               <div>
                 <span style="color: #059669; font-weight: 700;">خدمت:</span> ${doc.serviceLabel || 'حمل‌ونقل بار'}
               </div>
@@ -260,9 +468,13 @@ export function openAdminInvoiceModal(doc: any): void {
         </div>
 
         <div class="finance-modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding: 14px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;">
-          <button type="button" class="btn btn-primary" id="btn-admin-print-invoice" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <button type="button" class="btn btn-primary" id="btn-admin-print-invoice" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="چاپ یا ذخیره فاکتور به‌صورت PDF بدون عنوان اضافی">
             <span class="icon" style="width: 16px; height: 16px;">${icons.printer}</span>
-            <span>چاپ فاکتور رسمی</span>
+            <span>چاپ و ذخیره PDF</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-admin-download-invoice" style="background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="دریافت فایل سند آفلاین فاکتور">
+            <span class="icon" style="width: 16px; height: 16px;">${icons.download}</span>
+            <span>دریافت فایل فاکتور</span>
           </button>
           <button type="button" class="btn btn-secondary" id="btn-admin-close-modal" style="background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
             بستن
@@ -283,49 +495,11 @@ export function openAdminInvoiceModal(doc: any): void {
   });
 
   document.getElementById('btn-admin-print-invoice')?.addEventListener('click', () => {
-    const printContent = document.getElementById('admin-printable-invoice');
-    if (!printContent) return;
+    printAdminInvoiceSheet('admin-printable-invoice');
+  });
 
-    const printWindow = window.open('', '_blank', 'width=850,height=900');
-    if (!printWindow) {
-      window.print();
-      return;
-    }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="fa" dir="rtl">
-      <head>
-        <meta charset="utf-8" />
-        <title>فاکتور رسمی بهبار - #${trackingCode}</title>
-        <style>
-          * { box-sizing: border-box; font-family: Tahoma, 'Vazirmatn', sans-serif; }
-          body { margin: 20px; background: white; color: #111827; }
-          .behbar-invoice-sheet { max-width: 760px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 8px; }
-          .behbar-invoice-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #059669; padding-bottom: 16px; margin-bottom: 20px; }
-          .behbar-invoice-meta { text-align: left; font-size: 0.82rem; line-height: 1.6; color: #4b5563; }
-          .behbar-invoice-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f9fafb; padding: 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; }
-          .behbar-invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.86rem; }
-          .behbar-invoice-table th { background: #f3f4f6; color: #374151; font-weight: 700; padding: 10px 12px; border: 1px solid #e5e7eb; text-align: right; }
-          .behbar-invoice-table td { padding: 10px 12px; border: 1px solid #e5e7eb; text-align: right; }
-          .behbar-invoice-total { display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 14px 18px; border-radius: 8px; font-size: 1.1rem; margin-bottom: 24px; }
-          .behbar-invoice-footer-sign { display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.8rem; color: #6b7280; }
-          @media print {
-            body { margin: 0; }
-            .behbar-invoice-sheet { border: none; padding: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        ${printContent.outerHTML}
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+  document.getElementById('btn-admin-download-invoice')?.addEventListener('click', () => {
+    downloadAdminInvoiceHtml('admin-printable-invoice', trackingCode);
   });
 }
+

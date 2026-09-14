@@ -198,3 +198,46 @@ export function addDaysJalaali(date: JalaaliDate, days: number): JalaaliDate {
   gregorian.setDate(gregorian.getDate() + days);
   return gregorianToJalaali(gregorian);
 }
+
+export function formatIranianDate(input?: string | Date | null): string {
+  if (!input) input = new Date();
+  let date: Date;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (/^(14\d\d|۱۴\d\d)/.test(trimmed) || PERSIAN_MONTH_NAMES.some((m) => trimmed.includes(m))) {
+      return toPersianDigits(trimmed);
+    }
+    date = new Date(trimmed.includes(' ') && !trimmed.includes('T') ? trimmed.replace(' ', 'T') : trimmed);
+  } else {
+    date = input;
+  }
+  if (isNaN(date.getTime())) {
+    return toPersianDigits(String(input));
+  }
+  const j = gregorianToJalaali(date);
+  const jy = toPersianDigits(j.jy);
+  const jm = toPersianDigits(String(j.jm).padStart(2, '0'));
+  const jd = toPersianDigits(String(j.jd).padStart(2, '0'));
+  return `${jy}/${jm}/${jd}`;
+}
+
+export function formatIranianDateFull(input?: string | Date | null): string {
+  if (!input) input = new Date();
+  let date: Date;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (/^(14\d\d|۱۴\d\d)/.test(trimmed) || PERSIAN_MONTH_NAMES.some((m) => trimmed.includes(m))) {
+      return toPersianDigits(trimmed);
+    }
+    date = new Date(trimmed.includes(' ') && !trimmed.includes('T') ? trimmed.replace(' ', 'T') : trimmed);
+  } else {
+    date = input;
+  }
+  if (isNaN(date.getTime())) {
+    return toPersianDigits(String(input));
+  }
+  const j = gregorianToJalaali(date);
+  const monthName = PERSIAN_MONTH_NAMES[j.jm - 1];
+  return `${toPersianDigits(j.jd)} ${monthName} ${toPersianDigits(j.jy)}`;
+}
+

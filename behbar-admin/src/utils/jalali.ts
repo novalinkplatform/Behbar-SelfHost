@@ -129,12 +129,54 @@ export const PERSIAN_MONTH_NAMES = [
 
 const PERSIAN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 
-function toPersianDigits(value: number | string): string {
+export function toPersianDigits(value: number | string): string {
   return String(value).replace(/[0-9]/g, (d) => PERSIAN_DIGITS[Number(d)]);
 }
 
 export function formatJalaaliDate(date: JalaaliDate): string {
   return `${PERSIAN_MONTH_NAMES[date.jm - 1]} ${toPersianDigits(date.jd)}، ${toPersianDigits(date.jy)}`;
+}
+
+export function formatIranianDate(input?: string | Date | null): string {
+  if (!input) input = new Date();
+  let date: Date;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (/^(14\d\d|۱۴\d\d)/.test(trimmed) || PERSIAN_MONTH_NAMES.some((m) => trimmed.includes(m))) {
+      return toPersianDigits(trimmed);
+    }
+    date = new Date(trimmed.includes(' ') && !trimmed.includes('T') ? trimmed.replace(' ', 'T') : trimmed);
+  } else {
+    date = input;
+  }
+  if (isNaN(date.getTime())) {
+    return toPersianDigits(String(input));
+  }
+  const j = gregorianToJalaali(date);
+  const jy = toPersianDigits(j.jy);
+  const jm = toPersianDigits(String(j.jm).padStart(2, '0'));
+  const jd = toPersianDigits(String(j.jd).padStart(2, '0'));
+  return `${jy}/${jm}/${jd}`;
+}
+
+export function formatIranianDateFull(input?: string | Date | null): string {
+  if (!input) input = new Date();
+  let date: Date;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (/^(14\d\d|۱۴\d\d)/.test(trimmed) || PERSIAN_MONTH_NAMES.some((m) => trimmed.includes(m))) {
+      return toPersianDigits(trimmed);
+    }
+    date = new Date(trimmed.includes(' ') && !trimmed.includes('T') ? trimmed.replace(' ', 'T') : trimmed);
+  } else {
+    date = input;
+  }
+  if (isNaN(date.getTime())) {
+    return toPersianDigits(String(input));
+  }
+  const j = gregorianToJalaali(date);
+  const monthName = PERSIAN_MONTH_NAMES[j.jm - 1];
+  return `${toPersianDigits(j.jd)} ${monthName} ${toPersianDigits(j.jy)}`;
 }
 
 /**
